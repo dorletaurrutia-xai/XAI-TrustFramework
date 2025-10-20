@@ -17,9 +17,9 @@ These are formal conditions that an XAI technique satisfies **by definition**. T
 #### Example 1: SHAP (Lundberg & Lee, 2017)
 - **Local accuracy (additivity):**  
   The sum of feature contributions φᵢ exactly reproduces the prediction.  
-  \\[
+  $$[
   \\hat{y}(x) = \\phi_0 + \\sum_i \\phi_i(x)
-  \\]
+  \\]$$
 - **Consistency:**  
   If the marginal effect of a variable increases, its contribution cannot decrease.  
 - **Missingness:**  
