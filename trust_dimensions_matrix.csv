@@ -1,0 +1,13 @@
+Dimension,Trust Notion,Definition,Relevant Roles,XAI Technique,Metric / Formula
+Technical,Fidelity,Measures how accurately the explanation reproduces the model’s output,"Clinician, Engineer, Regulator",SHAP,1 - |ŷ - (b + Σφ)| / range(ŷ)
+Technical,Completeness,Assesses if the sum of contributions equals the prediction (additivity),"Clinician, Engineer",SHAP,mean(|ŷ - (b + Σφ)|)
+Technical,Stability,Evaluates the sensitivity of explanations to small perturbations of the input,"Engineer, Auditor",SHAP,"ρ(φ(x), φ(x+ε))"
+Technical,Monotonicity,Checks if adding positive evidence increases the predicted outcome,"Engineer, Clinician","SHAP, CEM",Δŷ / Δφ⁺ > 0
+Cognitive,Comprehensibility,Measures understandability of explanations for humans,"Patient, Clinician",TS4NLE,Tokens count / Flesch index
+Cognitive,Sparsity,Assesses whether few features explain most of the outcome (parsimony),Clinician,SHAP,% top-k φᵢ / Σ|φ|
+Cognitive,Faithfulness,Correlates variable importance with its actual effect on output,"Clinician, Engineer","SHAP, LIME","Corr(importance, Δŷ)"
+Institutional,Traceability,Ensures that all model and explanation parameters are logged and reproducible,"Regulator, Engineer, Auditor",—,Presence of log metadata
+Institutional,Reproducibility,Measures variance of results across seeds or runs,"Engineer, Auditor",—,SD(metrics) across n seeds
+Social,Actionability,Evaluates if suggested feature changes are feasible for the user,"Patient, Clinician",DiCE,% CFs within domain constraints
+Social,Diversity,Checks whether generated counterfactuals are non-redundant and diverse,Clinician,DiCE,"Mean pairwise distance(CF_i, CF_j)"
+Social,Fairness / Contestability,Assesses parity and capacity to challenge system outputs,"Patient, Regulator","SHAP, DiCE",Δ|φ| across proxy groups
