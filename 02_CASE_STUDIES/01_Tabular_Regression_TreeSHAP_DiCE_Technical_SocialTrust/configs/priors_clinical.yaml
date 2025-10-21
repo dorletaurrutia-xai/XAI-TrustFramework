@@ -1,0 +1,70 @@
+# Clinical & data priors for the diabetes regression pilot
+# Nota: las features de sklearn.diabetes vienen estandarizadas (z-score).
+# Aquí definimos cómo derivar límites y tolerancias a partir de los datos, sin asumir rangos clínicos absolutos.
+
+meta:
+  dataset: "sklearn.diabetes"
+  target: "target"          # medida continua de progresión/enfermedad
+  standardization: "zscore" # indica que las X están normalizadas en origen
+
+bounds_strategy:
+  # Estrategia por defecto para acotar variables: usar percentiles del propio dataset
+  from_data_percentiles:
+    low: 1
+    high: 99
+
+tolerances:
+  # Tolerancia para "completeness": error máximo aceptable en reconstrucción aditiva SHAP
+  completeness_abs_tau: 5.0         # unidades del target (ajusta si cambias escala)
+  # Ruido para pruebas de estabilidad (véase stability en metrics abajo)
+  stability_perturbation:
+    scheme: "relative"              # "absolute" o "relative"
+    epsilon: 0.02                   # 2% de la desviación estándar por feature
+
+immutables:
+  # Variables que NO pueden cambiar en contrafactuales
+  - "sex"
+  - "age"
+
+actionable:
+  # Variables que sí pueden cambiar (p. ej. hábitos/medidas proxy)
+  # Mantener todas salvo las inmutables; se pueden restringir si se pide clínicamente.
+  include:
+    - "bmi"
+    - "bp"
+    - "s1"
+    - "s2"
+    - "s3"
+    - "s4"
+    - "s5"
+    - "s6"
+
+costs:
+  # Coste relativo de cambiar cada feature (para DiCE/optimización)
+  # 1.0 = coste base; >1.0 más difícil; <1.0 más fácil
+  # Ajusta con criterio clínico/social (p. ej. cambiar BMI es costoso → 2.0)
+  default: 1.0
+  per_feature:
+    bmi: 2.0
+    bp: 1.5
+    s1: 1.0
+    s2: 1.0
+    s3: 1.0
+    s4: 1.0
+    s5: 1.0
+    s6: 1.0
+
+profiles:
+  # Dos perfiles de uso para alinear técnica (clínico) y social (paciente)
+  clinician:
+    explanation_focus: ["fidelity", "completeness", "stability", "plausibility"]
+    acceptance_criteria:
+      completeness_min_pct: 0.95
+      stability_cosine_median_min: 0.90
+      plausible_cf_min_pct: 0.80
+  patient:
+    explanation_focus: ["actionability", "clarity", "diversity"]
+    # Limita nº de cambios y magnitud para propuestas más "vivibles"
+    max_changes: 3
+    max_step_relative: 0.5   # como fracción de la desviación estándar
+    present_top_k_features: 3
