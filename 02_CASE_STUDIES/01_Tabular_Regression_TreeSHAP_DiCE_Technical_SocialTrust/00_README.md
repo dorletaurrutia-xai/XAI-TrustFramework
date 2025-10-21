@@ -37,23 +37,17 @@ Together, they provide a combined view of **trustworthiness** that connects *mod
 
 ```
 01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/
-├── data/
-│ ├── raw/ ← diabetes.csv (public dataset)
-│ └── processed/ ← train/val/test splits
 ├── notebooks/
-│ ├── 01_BASEMODEL_RF.ipynb ← train baseline RandomForest model
-│ ├── 02_SHAP_Explainer.ipynb ← compute TreeSHAP explanations
-│ ├── 03_DiCE_Explainer.ipynb ← generate counterfactuals
-│ └── 04_METRICS_EVALUATION.ipynb ← compute trust metrics (SHAP + DiCE)
+│ ├── Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust.ipynb
 ├── results/
 │ ├── metrics_summary.csv
 │ ├── stability_analysis.csv
 │ ├── dice_counterfactuals.csv
 │ └── visuals/
 └── configs/
-├── priors_clinical.yaml
-├── dice_constraints.yaml
-└── seeds.json
+│├── priors_clinical.yaml
+│├── dice_constraints.yaml
+│└── seeds.json
 ```
 
 
