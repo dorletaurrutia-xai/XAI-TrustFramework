@@ -1,0 +1,49 @@
+# Constraints & preferences for DiCE counterfactual generation
+
+backend: "sklearn"
+outcome:
+  name: "target"
+  # Cómo definimos el "objetivo deseado" para CFs:
+  desired:
+    type: "range"          # "range" o "target_value"
+    # Por defecto, usa rango alrededor de la mediana de y_val (se puede sobrescribir en notebook)
+    range_margin: 10.0     # ± margen en unidades del target
+
+search:
+  total_cfs_per_instance: 3
+  features_to_vary: "actionable"   # usa lista de priors_clinical.yaml
+  diversity_weight: 0.5            # trade-off proximidad vs diversidad
+  proximity_metric: "l1"           # "l1" o "l2"
+  stop_when_k_found: true
+
+feasibility:
+  # Origen de límites: usa percentiles definidos en priors (recomendado para sklearn.diabetes)
+  bounds_source: "priors"
+  immutable_features:
+    - "sex"
+    - "age"
+  per_feature_bounds:
+    # Opcional: si se quiere sobreescribir límites por feature (en z-score)
+    # bmi: {min: -3.0, max: 3.0}
+    # bp:  {min: -3.0, max: 3.0}
+    {}
+  per_feature_costs:
+    # Si no se especifica, usa costs.default / costs.per_feature de priors
+    {}
+
+plausibility_checks:
+  # Validaciones adicionales (se evalúan después de generar CFs)
+  enforce_monotonic_target_improvement: true  # CF debe acercar el target al rango/valor deseado
+  reject_if_outside_bounds: true
+  min_diversity_distance: 0.2  # distancia mínima media entre CFs (en métrica elegida)
+
+profiles:
+  # Restricciones específicas por perfil de uso (opcional)
+  clinician:
+    max_changes: 5
+    allow_all_actionable: true
+  patient:
+    max_changes: 3
+    allow_all_actionable: true
+    # Limita magnitud de cambio para hacerlo "realista" desde el punto de vista social
+    max_step_relative: 0.5
