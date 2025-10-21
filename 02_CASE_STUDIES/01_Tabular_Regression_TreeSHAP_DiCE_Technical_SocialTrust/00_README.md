@@ -63,14 +63,14 @@ Together, they provide a combined view of **trustworthiness** that connects *mod
 
 | Metric | Definition (operational) | Technique | Theoretical Link | Trust Dimension |
 |---------|---------------------------|------------|------------------|-----------------|
-| **Fidelity** | Agreement between model prediction `f(x)` and additive reconstruction `φ₀ + Σ φᵢ(x)` (MAE / R²). | TreeSHAP | Local accuracy | Technical |
-| **Completeness** | Percentage of instances where \\( | f(x) - (φ₀ + Σ φᵢ(x)) | ≤ τ \\). | TreeSHAP | Additivity / Missingness | Technical |
+| **Fidelity** | Agreement between model prediction `f(x)` and additive reconstruction `φ₀ + Σφᵢ(x)` (MAE / R²). | TreeSHAP | Local accuracy | Technical |
+| **Completeness** | Percentage of instances where `abs(f(x) - (φ₀ + Σφᵢ(x))) ≤ τ`. | TreeSHAP | Additivity / Missingness | Technical |
 | **Stability** | Robustness of SHAP vectors under ε-perturbations (cosine / Spearman). | TreeSHAP | Consistency | Technical |
 | **Actionability** | Share of counterfactuals meeting domain constraints and reaching target. | DiCE | Proximity / Feasibility | Social |
 | **Diversity** | Mean pairwise distance between CFs (L1/L2) per instance. | DiCE | Diversity | Social |
 | **Plausibility** | Share of CFs within clinically plausible ranges (from `dice_constraints.yaml`). | DiCE | Feasibility | Social |
 
-> **Note:** Thresholds (τ for completeness, ε for perturbations, clinical bounds) are set in `configs/` and should be reported alongside scores.
+> **Note:** Thresholds (`τ` for completeness, `ε` for perturbations, clinical bounds) are set in `configs/` and should be reported alongside scores.
 
 ---
 
