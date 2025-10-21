@@ -33,6 +33,26 @@ Together, they provide a combined view of **trustworthiness** that connects *mod
 | **Trust Notions** | Fidelity, Completeness, Stability, Actionability, Diversity, Plausibility |
 | **Trust Dimensions** | Technical + Social |
 
+### Configuration and Reproducibility Setup
+
+This notebook is fully parameterized through external configuration files located in `configs/`, ensuring transparent and reproducible experimentation.  
+Instead of defining parameters within the notebook, all methodological settings are declared in YAML/JSON files:
+
+| File | Purpose |
+|------|----------|
+| `configs/priors_clinical.yaml` | Defines clinical priors, tolerance thresholds (τ), and perturbation noise (ε) for technical metrics (completeness, stability). |
+| `configs/dice_constraints.yaml` | Specifies immutable variables, feature bounds, and DiCE generation parameters for social trust metrics (actionability, diversity, plausibility). |
+| `configs/seeds.json` | Ensures reproducibility across data splits, model training, and perturbations. |
+
+The notebook automatically loads these configurations at runtime and applies them consistently across:
+- **Data splitting** (train/validation/test)
+- **Model training** (RandomForest baseline)
+- **XAI evaluation metrics** (fidelity, completeness, stability)
+- **Counterfactual generation** (DiCE)
+
+> Any methodological change—such as adjusting tolerance thresholds, bounds, or immutables—must be done by editing these YAML/JSON files in the repository.  
+> This guarantees experiment reproducibility, transparency, and traceability for peer validation.
+
 **Workflow**
 
 ```
