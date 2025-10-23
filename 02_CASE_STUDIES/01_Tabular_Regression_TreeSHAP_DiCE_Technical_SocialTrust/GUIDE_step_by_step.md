@@ -117,8 +117,8 @@ SEED_SK = SEEDS.get("sklearn", SEEDS.get("data_split_seed", 42))
 try:
     with open(PROJECT / "configs" / "priors_clinical.yaml") as f:
         PRIORS = yaml.safe_load(f)
-    TAU = PRIORS["tolerances"]["completeness_abs_tau"]
-    EPS = PRIORS["tolerances"]["stability_perturbation"]["epsilon"]
+    TAU = PRIORS["tolerances"]["additivity_abs_tau"]
+    EPS = PRIORS["tolerances"]["consistency_perturbation"]["epsilon"]
 except FileNotFoundError:
     TAU, EPS = 1e-6, 0.01  # default values if YAML not yet present
 ```
