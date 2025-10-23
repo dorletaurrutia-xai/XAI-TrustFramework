@@ -259,7 +259,111 @@ Versioning the raw dataset ensures complete traceability — anyone rerunning th
 Confirm that the file now appears in the GitHub repository under
 data/raw/diabetes.csv and matches the one generated locally.
 
-✅ This ensures that all future runs of the pilot will reference the same raw dataset version.
+This ensures that all future runs of the pilot will reference the same raw dataset version.
+
+### Step 3.3 — Split data into train/validation/test sets
+
+```python
+import pandas as pd
+from sklearn.model_selection import train_test_split
+import json
+
+# Load seeds for consistency across notebooks
+with open(PROJECT / "configs/seeds.json") as f:
+    SEEDS = json.load(f)
+
+# Load the raw dataset (instead of fetching again from sklearn) for FAIR traceability
+df = pd.read_csv(PROJECT / "data/raw/diabetes.csv")
+
+X = df.drop(columns=["target"])
+y = df["target"]
+
+# Split: 70% train, 15% validation, 15% test
+X_train, X_tmp, y_train, y_tmp = train_test_split(
+    X, y, test_size=0.30, random_state=SEED_SK
+)
+X_val, X_test, y_val, y_test = train_test_split(
+    X_tmp, y_tmp, test_size=0.50, random_state=SEED_SK
+)
+
+proc = PROJECT / "data/processed"
+X_train.to_csv(proc / "X_train.csv", index=False)
+y_train.to_csv(proc / "y_train.csv", index=False)
+X_val.to_csv(proc / "X_val.csv", index=False)
+y_val.to_csv(proc / "y_val.csv", index=False)
+X_test.to_csv(proc / "X_test.csv", index=False)
+y_test.to_csv(proc / "y_test.csv", index=False)
+
+print("Splits saved in:", proc)
+print("Shapes ->",
+      "train:", X_train.shape,
+      "| val:", X_val.shape,
+      "| test:", X_test.shape)
+```
+#### Explanation:
+This step divides the dataset into three subsets — training, validation, and test — to prevent data leakage and enable unbiased evaluation.
+
+Data split:
+
+70% training → used to fit the model.
+
+15% validation → used for tuning and intermediate checks.
+
+15% test → used only for final evaluation.
+
+The random seeds loaded from seeds.json ensure consistent splits across different notebooks and runs, enabling reproducibility.
+
+All subsets are saved in /data/processed/ so that subsequent notebooks can load them directly without re-splitting the data.
+
+> [!NOTE]
+> **What is the validation (val) set for, and where is it used later?**
+>
+> The **validation (val)** set is a *calibration* set: it is **not** used to train the model (train) and **not** reserved for the final report (test). You use it to tune methodological choices and sanity-check explainability before touching the test set.
+>
+> **Roles of each split**
+> - **Train** → fit the model.
+> - **Validation (val)** → calibrate thresholds and check explainability behavior.
+> - **Test** → final, untouched evaluation for reporting.
+>
+> **How val is used in this pilot**
+> 1) **TreeSHAP (technical metrics)**: try/adjust empirical thresholds from `priors_clinical.yaml`  
+>    - τ (*additivity_abs_tau*) for Additivity → Completeness  
+>    - ε (*consistency_perturbation.epsilon*) for Consistency → Stability  
+>    Run on **val** first to ensure metrics behave reasonably before running on **test**.
+>
+> 2) **DiCE (counterfactuals)**: sandbox to validate constraints from `dice_constraints.yaml`  
+>    - immutables, feature bounds, and relative costs  
+>    Ensure counterfactuals are feasible/plausible on **val** before using **test**.
+>
+> 3) **Intermediate vs final results**  
+>    - Save calibration metrics on **val** (e.g., `results/metrics_summary_val.csv`).  
+>    - Only after calibration, compute final metrics on **test** (e.g., `results/metrics_summary_test.csv`).
+>
+> This separation prevents **data leakage** and keeps **test** as an honest, reproducible estimate of performance and trust properties.
 
 
 
+#### Expected output (example):
+
+Splits saved in: /content/.../data/processed
+Shapes -> train: (309, 10) | val: (66, 10) | test: (67, 10)
+
+
+#### Checkpoint:
+Confirm that the following files exist under data/processed/:
+
+X_train.csv
+y_train.csv
+X_val.csv
+y_val.csv
+X_test.csv
+y_test.csv
+
+
+>[!NOTE]
+>Conceptual Note — FAIR reproducibility
+>
+>Loading and splitting data from the stored /data/raw/diabetes.csv (instead of fetching it again)
+>enforces FAIR principles — Findable, Accessible, Interoperable, Reproducible —
+>ensuring that the exact same dataset and partitions can be reused and audited later.
+>
