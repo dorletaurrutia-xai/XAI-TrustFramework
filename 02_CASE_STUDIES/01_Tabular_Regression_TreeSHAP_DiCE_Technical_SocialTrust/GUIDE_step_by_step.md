@@ -188,8 +188,8 @@ If priors_clinical.yaml is missing, defaults will be used but must later be repl
 >In code, these parameters are loaded as:
 >
 >```python
->TAU = PRIORS["tolerances"]["completeness_abs_tau"]   # τ — threshold for Additivity/Completeness
->EPS = PRIORS["tolerances"]["stability_perturbation"]["epsilon"]  # ε — perturbation for Consistency/Stability
+>TAU = PRIORS["tolerances"]["additivity_abs_tau"]   # τ — threshold for Additivity/Completeness
+>EPS = PRIORS["tolerances"]["consistency_perturbation"]["epsilon"]  # ε — perturbation for Consistency/Stability
 >```
 >
 >Interpretation:
