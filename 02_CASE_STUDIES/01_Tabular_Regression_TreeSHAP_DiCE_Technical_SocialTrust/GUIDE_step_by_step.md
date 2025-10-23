@@ -666,12 +666,12 @@ Once uploaded, these SHAP outputs can be reused by later notebooks to compute tr
 >
 > The mathematical core is **Shapley’s efficiency theorem** (1953), which guarantees a *unique solution* for distributing a system’s output among its inputs, subject to three axioms:
 >
-| **Shapley Axiom / Property** | **Engineering Interpretation** | **Trust Notion (empirical)** | **Metric / Formula** | **What it means in your model** | **File** | **Status in this pilot** |
-|-------------------------------|--------------------------------|------------------------------|----------------------|----------------------------------|-----------|---------------------------|
-| **Efficiency / Additivity** | The total output equals the sum of individual input contributions. | **Completeness** | % of instances where&nbsp;\\( \| f(x) - [\phi_0 + \sum_i \phi_i(x)] \| \leq \tau \\) | Verifies that predictions can be **reconstructed** as the sum of all SHAP contributions plus the baseline. | — | ✅ Operationalized *(Additivity → Completeness, τ)* |
-| **Local Accuracy** | Each instance’s prediction equals the sum of its feature contributions. | **Fidelity** | \\( R^2 \\)&nbsp;or&nbsp;MAE&nbsp;between&nbsp;\\( f(x) \\)&nbsp;and&nbsp;\\( \phi_0 + \sum_i \phi_i(x) \\) | Evaluates how faithfully the additive reconstruction matches the model’s actual output. Ensures per-instance coherence. | `metrics_summary_val.csv` | ✅ Operationalized |
-| **Symmetry / Consistency** | Inputs with equivalent impact receive equal attributions. | **Stability** | Similarity of SHAP vectors under&nbsp;ε-perturbations&nbsp;(cosine,&nbsp;Spearman) | Tests whether small input perturbations preserve the relative ranking and direction of feature contributions. | `stability_analysis.csv` | ✅ Operationalized *(Consistency → Stability, ε)* |
-| **Dummy / Missingness** | Inputs that have no influence receive zero attribution. | — *(not quantified)* | — | Ensures that irrelevant or constant features have&nbsp;\\( \phi = 0 \\). This can be checked analytically but not empirically in this pilot. | — | ⚪ Not included in this pilot |
+>| **Shapley Axiom / Property** | **Engineering Interpretation** | **Trust Notion (empirical)** | **Metric / Formula** | **What it means in your model** | **File** | **Status in this pilot** |
+>|-------------------------------|--------------------------------|------------------------------|----------------------|----------------------------------|-----------|---------------------------|
+>| **Efficiency / Additivity** | The total output equals the sum of individual input contributions. | **Completeness** | % of instances where&nbsp;\\( \| f(x) - [\phi_0 + \sum_i \phi_i(x)] \| \leq \tau \\) >| Verifies that predictions can be **reconstructed** as the sum of all SHAP contributions plus the baseline. | — | ✅ Operationalized *(Additivity → Completeness, τ)* |
+>| **Local Accuracy** | Each instance’s prediction equals the sum of its feature contributions. | **Fidelity** | \\( R^2 \\)&nbsp;or&nbsp;MAE&nbsp;between&nbsp;\\( f(x) \\)&nbsp;and&nbsp;\\( \phi_0 + \sum_i \phi_i(x) \\) | Evaluates how faithfully the additive reconstruction matches the model’s actual output. Ensures per-instance coherence. | `metrics_summary_val.csv` | ✅ Operationalized |
+>| **Symmetry / Consistency** | Inputs with equivalent impact receive equal attributions. | **Stability** | Similarity of SHAP vectors under&nbsp;ε-perturbations&nbsp;(cosine,&nbsp;Spearman) | Tests whether small input perturbations preserve the relative ranking and direction of feature contributions. | `stability_analysis.csv` | ✅ Operationalized *(Consistency → Stability, ε)* |
+>| **Dummy / Missingness** | Inputs that have no influence receive zero attribution. | — *(not quantified)* | — | Ensures that irrelevant or constant features have&nbsp;\\( \phi = 0 \\). This can be checked analytically but not empirically in this pilot. | — | ⚪ Not included in this pilot |
 >
 >
 > These axioms make SHAP a **model-agnostic decomposition operator**:  
@@ -729,10 +729,11 @@ Once uploaded, these SHAP outputs can be reused by later notebooks to compute tr
 > In the *XAI-TrustFramework*, this step operationalizes the **Technical Dimension of Trust**, linking formal guarantees with measurable evidence:
 >
 >| **Method-Guaranteed Property** (theoretical) | **Trust Notion** (empirical) | **Metric / Formula** | **What it means in your model** | **File** |
->|----------------------------------------------|------------------------------|----------------------|----------------------------------|----------|
->| **Additivity (Efficiency)** | **Completeness** | % of instances where \( | f(x) - [\phi_0 + \sum_i \phi_i(x)] | \leq \tau \) | Verifies that the prediction can be **reconstructed** as the sum of all SHAP contributions plus the baseline. If it holds, the model behaves additively. | — |
->| **Local Accuracy** | **Fidelity** | \( R^2 \) or MAE between \( f(x) \) and \( \phi_0 + \sum_i \phi_i(x) \) | Tests how **faithfully the additive reconstruction matches** the model’s actual prediction. Measures empirical coherence of the model output. | `metrics_summary_val.csv` |
->| **Consistency (Symmetry)** | **Stability** | Similarity of SHAP vectors under ε-perturbations (cosine, Spearman) | Checks whether **small input perturbations** produce **proportionally stable explanations**, ensuring invariance and reliability of attributions. | `stability_analysis.csv` |
+>|----------------------------------------------|-------------------------------|----------------------|----------------------------------|----------|
+>| **Additivity (Efficiency)** | **Completeness** | % of instances where&nbsp;\\( \| f(x) - [\phi_0 + \sum_i \phi_i(x)] \| \leq \tau \\) | Verifies that each prediction can be **reconstructed** as the sum of all SHAP contributions plus the baseline within a tolerance&nbsp;τ. | — |
+>| **Local Accuracy** | **Fidelity** | \\( R^2 \\)&nbsp;or&nbsp;MAE&nbsp;between&nbsp;\\( f(x) \\)&nbsp;and&nbsp;\\( \phi_0 + \sum_i \phi_i(x) \\) | Tests how **faithfully the additive reconstruction matches** the model’s actual prediction. Measures per-instance empirical coherence. | `metrics_summary_val.csv` |
+>| **Consistency (Symmetry)** | **Stability** | Similarity of SHAP vectors under&nbsp;ε-perturbations&nbsp;(cosine,&nbsp;Spearman) | Checks whether **small input perturbations** produce **proportionally stable explanations**, ensuring invariance and reliability of attributions. | `stability_analysis.csv` |
+>
 >
 >
 > By generating SHAP values, we empirically access the *internal logic* of the model, allowing the theoretical properties of fairness and consistency to be **quantified** as reproducible data.  
