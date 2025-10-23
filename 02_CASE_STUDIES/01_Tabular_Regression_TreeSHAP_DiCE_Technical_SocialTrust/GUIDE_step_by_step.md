@@ -635,26 +635,41 @@ Once uploaded, these SHAP outputs can be reused by later notebooks to compute tr
 > [!ANALYSIS]
 > **Result Analysis — SHAP baseline validation (φ₀, φᵢ(x), and their epistemic meaning)**
 >
-> **Theoretical foundation — from cooperative game theory to explainability**  
-> SHAP (SHapley Additive exPlanations) is grounded in **cooperative game theory**, where a model’s prediction \( f(x) \) is treated as the *payout* of a coalition of features.  
-> Each feature is conceptualized as a “player” that contributes to the final outcome depending on which other features are present.  
-> The **Shapley value** (Shapley, 1953) provides a *unique fair distribution rule* of the total payoff among the players, satisfying three axioms:
+> **Theoretical foundation — from cooperative system decomposition to explainability**
 >
-> | Axiom | Meaning in game theory | Translated to model explainability |
-> |--------|------------------------|------------------------------------|
-> | **Efficiency (Additivity)** | The total value of the coalition is distributed among all players. | The sum of feature contributions plus the baseline equals the prediction. |
-> | **Symmetry (Consistency)** | Players contributing equally receive equal shares. | Features with the same effect get equal attributions. |
-> | **Dummy (Missingness)** | Players not affecting the outcome get zero payoff. | Irrelevant features have φ = 0. |
+> This analysis does **not** attempt to “open” or introspect the internal mechanics of the model.  
+> Instead, it provides a **functional characterization** of the model’s observable behavior through *input–output contribution analysis*.
 >
-> These axioms guarantee that attributions are not arbitrary, but **mathematically justified** under fairness principles.  
-> This makes SHAP not just an explanation method — but a formal *translation of fairness theory* into algorithmic reasoning.
+> SHAP (SHapley Additive Explanations) originates from **cooperative game theory** but can be interpreted here as a **structured system-decomposition method**.  
+> Each feature acts as an *input channel* whose marginal influence on the output can be quantified under a controlled framework of *coalitional perturbations*.
+>
+> The mathematical core is **Shapley’s efficiency theorem** (1953), which guarantees a *unique solution* for distributing a system’s output among its inputs, subject to three axioms:
+>
+> | Axiom | Engineering interpretation | Relevance for system validation |
+> |--------|-----------------------------|--------------------------------|
+> | **Efficiency (Additivity)** | Total output equals the sum of identifiable input contributions. | Enables reconstructing predictions with verifiable tolerance (τ). |
+> | **Symmetry (Consistency)** | Inputs with equivalent impact receive equal attribution. | Ensures invariance across symmetrical parameter states. |
+> | **Dummy (Missingness)** | Inputs with zero influence contribute nothing to the output. | Enforces sparsity and semantic coherence in the decomposition. |
+>
+> These axioms make SHAP a **model-agnostic decomposition operator**:  
+> it defines how to *represent and measure* contribution dynamics without accessing internal parameters.  
+> What results is not a “peek inside the box,” but a **measurable mapping between features and outputs**, preserving the system’s functional integrity.
+>
+> **Key point:**  
+> - SHAP values \( \phi_i(x) \) are *empirical observables* of the model’s response surface.  
+> - The decomposition \( f(x) = \phi_0 + Σφ_i(x) \) is **a validation statement**, not a visual explanation.  
+> - Additivity and consistency allow us to verify that the model behaves as a **stable, decomposable system**, rather than as an opaque artifact.
+>
+> In this sense, SHAP operationalizes the **principle of structural accountability**:  
+> it converts the black-box system into a *traceable function space*, where every prediction can be validated by reconstruction.
+>
 >
 > **Computational formalization — TreeSHAP and its expected value (φ₀)**  
 > TreeSHAP implements this logic efficiently for tree-based models like `RandomForestRegressor`.  
 > It computes, for each instance:
-> \[
+> $$
 > f(x) = \phi_0 + \sum_i \phi_i(x)
-> \]
+> $$
 > where:
 > - \( \phi_0 \) is the **expected prediction** (baseline when no feature contributes).  
 > - \( \phi_i(x) \) is the **marginal contribution** of feature *i* across all possible coalitions.
