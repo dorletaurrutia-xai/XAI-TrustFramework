@@ -164,6 +164,37 @@ configs/priors_clinical.yaml
 
 If priors_clinical.yaml is missing, defaults will be used but must later be replaced with validated values for reproducible reporting.
 
+> [!NOTE]
+>
+>**Conceptual note** — τ (tau) and ε (epsilon) in the XAI-TrustFramework
+>
+>`priors_clinical.yaml` does not define *trust notions* directly.  
+>Instead, it stores **empirical thresholds** used to validate the **method-guaranteed properties** of XAI methods in practice.
+>
+>| Hierarchy | Example (TreeSHAP) | Relation | Parameter |
+>|------------|--------------------|-----------|------------|
+>| **Method-Guaranteed Property** | Additivity | theoretical guarantee | — |
+>| **Trust Notion** | Completeness | empirical interpretation of Additivity | — |
+>| **Metric** | % of instances where |f(x) − Σφᵢ(x)| ≤ τ | operationalizes Completeness |
+>| **Parameter** | τ (tau) | acceptable deviation for Additivity | stored in `priors_clinical.yaml` |
+>| **Method-Guaranteed Property** | Consistency | theoretical guarantee | — |
+>| **Trust Notion** | Stability | empirical interpretation of Consistency | — |
+>| **Metric** | Cosine/Spearman similarity under ε-noise | operationalizes Stability |
+>| **Parameter** | ε (epsilon) | perturbation level for Consistency | stored in `priors_clinical.yaml` |
+>
+>In code, these parameters are loaded as:
+>
+>```python
+>TAU = PRIORS["tolerances"]["completeness_abs_tau"]   # τ — threshold for Additivity/Completeness
+>EPS = PRIORS["tolerances"]["stability_perturbation"]["epsilon"]  # ε — perturbation for Consistency/Stability
+>```
+>
+>Interpretation:
+>τ and ε are not trust notions themselves.
+>They are empirical thresholds enabling the quantitative verification of TreeSHAP’s theoretical guarantees (Additivity and Consistency).
+>
+>For the full theoretical mapping between method-guaranteed properties, trust notions, and metrics, see the XAI-TrustFramework Conceptual Model
+>
 ### Step 3.1 — Load and save the clinical dataset
 
 ```python
@@ -207,3 +238,25 @@ data/raw/diabetes.csv
 and that the first rows display expected columns such as:
 
 ['age', 'sex', 'bmi', 'bp', 's1', 's2', 's3', 's4', 's5', 's6', 'target']
+
+### Step 3.2 — Upload the raw dataset to GitHub
+
+Once the `diabetes.csv` file has been generated under `/data/raw/`,  
+you must **download it from Colab and upload it to the GitHub repository**.
+
+**Purpose:**  
+Versioning the raw dataset ensures complete traceability — anyone rerunning the pilot will use the *exact same data*.
+
+**Instructions:**
+1. In the left panel of Google Colab, open the folder `data/raw/`.
+2. Right-click on `diabetes.csv` → **Download**.
+3. Upload the file to the repository at: 01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/data/raw/diabetes.csv
+
+#### Checkpoint:
+Confirm that the file now appears in the GitHub repository under
+data/raw/diabetes.csv and matches the one generated locally.
+
+✅ This ensures that all future runs of the pilot will reference the same raw dataset version.
+
+
+
