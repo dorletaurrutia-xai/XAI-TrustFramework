@@ -367,3 +367,104 @@ y_test.csv
 >enforces FAIR principles — Findable, Accessible, Interoperable, Reproducible —
 >ensuring that the exact same dataset and partitions can be reused and audited later.
 >
+
+### Step 3.4 — Upload processed data to GitHub
+
+After generating the processed splits, download them from Colab and upload them to the repository to ensure full reproducibility.
+
+#### Folder to upload
+01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/data/processed/
+
+#### Files to include
+X_train.csv
+y_train.csv
+X_val.csv
+y_val.csv
+X_test.csv
+y_test.csv
+
+#### Steps
+1. In Colab, open the left sidebar → **data/processed/**.  
+2. Right-click each `.csv` file and select **Download**.  
+3. In your local GitHub repository, move the files to:
+01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/data/processed/
+
+Once uploaded, the processed splits will be available for all notebooks in the pilot (TreeSHAP + DiCE) to ensure consistent, reproducible results.
+
+### Step 4.1 — Train the baseline model (RandomForestRegressor)
+
+```python
+import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_absolute_error
+import json
+
+# Load processed splits
+proc = PROJECT / "data/processed"
+X_train = pd.read_csv(proc / "X_train.csv")
+y_train = pd.read_csv(proc / "y_train.csv").squeeze("columns")
+X_val   = pd.read_csv(proc / "X_val.csv")
+y_val   = pd.read_csv(proc / "y_val.csv").squeeze("columns")
+
+# Load seeds
+with open(PROJECT / "configs/seeds.json") as f:
+    SEEDS = json.load(f)
+
+rf = RandomForestRegressor(
+    n_estimators=300,      # enough trees for stability
+    random_state=SEED_SK,
+    n_jobs=-1
+)
+rf.fit(X_train, y_train)
+
+pred_val = rf.predict(X_val)
+mae_val = mean_absolute_error(y_val, pred_val)
+print(f"MAE (validation): {mae_val:.3f}")
+```
+#### Explanation:
+We train a simple and robust baseline using RandomForestRegressor.
+This step provides a reference model before applying explainability techniques (TreeSHAP and DiCE).
+The goal is not to optimize hyperparameters but to ensure the model behaves predictably and its explanations are interpretable.
+
+#### Key points:
+
+Fixed random seeds ensure reproducibility.
+
+n_estimators=300 provides stability without overfitting.
+
+The validation MAE serves as a baseline performance reference before any XAI analysis.
+
+#### Expected output (example):
+
+MAE (validation): 43.217
+
+> [!NOTE]
+> **Conceptual Note — Understanding MAE in this context**
+>
+> The **Mean Absolute Error (MAE)** is used here as a *neutral reference metric* for model performance before any explainability analysis.
+>
+> - **What MAE measures:**  
+>   The average absolute difference between the model’s predicted values `ŷ` and the true targets `y`.  
+>   $$\[
+>   MAE = \frac{1}{n} \sum |y_i - \hat{y}_i|
+>   \]$$
+>
+> - **Why MAE (not R² or RMSE):**  
+>   - MAE is **scale-consistent** and directly interpretable in the same units as the target (e.g., clinical progression score).  
+>   - It is **less sensitive to outliers** than RMSE, avoiding distortions when the data are standardized (z-score).  
+>   - It provides a **transparent baseline** for comparing XAI-derived metrics (like fidelity) later on.
+>
+> - **How it connects to the XAI-TrustFramework:**  
+>   The MAE on the *validation set* establishes the **technical reliability baseline** of the predictive model.  
+>   Only after confirming the model performs consistently can we interpret **fidelity**, **additivity**, or **stability** metrics as reflections of *explanation quality*, rather than of model error.
+>
+> *Reference:*  
+>   In the framework’s hierarchy, MAE is part of the **pre-XAI reliability layer** — it assesses *model adequacy* before trust metrics are applied.
+
+
+[!NOTE]
+Why use a baseline first?
+Establishing a stable baseline avoids confusing the performance of the model itself
+with the quality of the explanations.
+Once fidelity, additivity, consistency, and other trust metrics are applied,
+we can attribute differences in behavior to the explainability methods — not to model instability.
