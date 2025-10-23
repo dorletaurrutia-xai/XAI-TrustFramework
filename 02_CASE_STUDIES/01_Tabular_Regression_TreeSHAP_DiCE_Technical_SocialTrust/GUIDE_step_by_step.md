@@ -518,40 +518,34 @@ print("Expected value (phi0):", float(phi0))
 > - \( \phi_0 \) is the model’s expected output (baseline prediction),
 > - \( \phi_i(x) \) is the contribution of each feature \( i \).
 >
-> **Method-Guaranteed Properties (theoretical)**  
-> TreeSHAP is mathematically guaranteed to satisfy:
+> **Method-Guaranteed Properties (operationalized in this pilot)**  
+> TreeSHAP satisfies three theoretical guarantees — *Additivity*, *Consistency*, and *Missingness* —  
+> but in this pilot, only the first two are **empirically validated** through Technical Trust metrics:
 >
-> | Property | Description | Mathematical meaning |
-> |-----------|--------------|----------------------|
-> | **Local Accuracy (Additivity)** | The sum of feature contributions plus baseline equals the model output. | \( f(x) = \phi_0 + \sum_i \phi_i(x) \) |
-> | **Consistency** | If a model change increases a feature’s effect, its attribution will not decrease. | Monotonic fairness in contributions |
-> | **Missingness** | Features with no influence receive zero attribution. | \( \phi_i(x) = 0 \) if feature absent |
+> | **Method-Guaranteed Property** | **Trust Notion (empirical)** | **Trust Metric** | **Parameter** |
+>|--------------------------------|-------------------------------|------------------|----------------|
+>| **Additivity** | **Completeness** | % of instances where `| f(x) − (φ₀ + Σφᵢ(x)) | ≤ τ` | τ (`additivity_abs_tau`) |
+>| **Local Accuracy (Additivity)** | **Fidelity** | `R²` or `MAE` between `f(x)` and reconstruction | — |
+>| **Consistency** | **Stability** | Similarity of SHAP vectors under ε-perturbations | ε (`consistency_perturbation.epsilon`) |
 >
-> **Trust Notions (empirical, Technical Dimension)**  
-> In this pilot, these theoretical properties are **operationalized as Technical Trust Notions**:
->
-> | Method-Guaranteed Property | Trust Notion (empirical) | Trust Metric | Parameter |
-> |-----------------------------|---------------------------|---------------|------------|
-> | Additivity | **Completeness** | % instances where \( |f(x) - (\phi_0 + \sum_i \phi_i(x))| \leq \tau \) | τ (`additivity_abs_tau`) |
-> | Local Accuracy | **Fidelity** | \( R^2 \) or MAE between \( f(x) \) and reconstruction | — |
-> | Consistency | **Stability** | Similarity of SHAP vectors under ε perturbations | ε (`consistency_perturbation.epsilon`) |
+> **Missingness** (features with no influence have φ=0) is acknowledged as a theoretical property of TreeSHAP  
+> but is **not empirically tested** in this pilot — it remains a qualitative check for feature sparsity.
 >
 > **Why Technical Dimension only?**  
 > TreeSHAP explains *how the model behaves*, not *how a person can act upon it*.  
-> Its goal is to ensure **internal reliability and mathematical coherence** of the model’s reasoning — core aspects of the *technical dimension* of trust.  
-> Human-centered notions (like actionability or plausibility) are later addressed through **DiCE**.
+> Its goal is to ensure **internal reliability and mathematical coherence** of the model’s reasoning —  
+> key aspects of the **technical dimension** of trust.  
+> Human-centered notions like *actionability* or *plausibility* are addressed later through **DiCE**.
 >
 > *Summary:*  
-> In this regression context:
 > ```
-> Data → Tabular
-> Task → Regression
-> Method → TreeSHAP
-> Properties → Additivity, Consistency, Missingness
-> Trust Notions → Fidelity, Completeness, Stability
+> Data → Tabular  
+> Task → Regression  
+> Method → TreeSHAP  
+> Theoretical Properties → Additivity, Consistency, Missingness  
+> Trust Notions (operationalized) → Fidelity, Completeness, Stability  
 > Dimension → Technical
 > ```
-
 
 #### Why interventional?
 It approximates do()-style interventions on individual features, which helps reduce artefacts from feature correlation compared to purely independent perturbations—particularly important with tabular data.
