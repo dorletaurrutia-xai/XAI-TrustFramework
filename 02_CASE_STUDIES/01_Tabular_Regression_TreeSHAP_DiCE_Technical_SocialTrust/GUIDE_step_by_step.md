@@ -773,10 +773,94 @@ Once downloaded, move the file into your local repository:
 
 01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/results/shap_explanations_sample.csv
 
+> [!PIT]
+> **Result Analysis — SHAP contributions (φᵢ)**
+>
+> The file `results/shap_explanations_sample.csv` combines each validation instance  
+> with its corresponding SHAP contribution values (φᵢ).  
+> These represent the marginal effect of each feature on the model’s prediction.
+>
+> **Interpretation logic:**
+> - Positive φᵢ(x) → the feature **increases** the prediction above the baseline (φ₀ ≈ 153.02).  
+> - Negative φᵢ(x) → the feature **decreases** the prediction below the baseline.  
+> - The absolute magnitude of φᵢ(x) → indicates the **strength of that influence**.
+>
+> **Empirical observation (sample data):**
+>
+> | Variable | Mean φᵢ(x) | Interpretation |
+> |-----------|-------------|----------------|
+> | **s5** | +21.6 | Increases the predicted progression. |
+> | **bmi** | +13.5 | Strong positive contributor (higher BMI → higher risk). |
+> | **bp** | +4.8 | Moderate positive contribution. |
+> | **s3** | -8.5 | Reduces the predicted progression. |
+> | **age** | -2.9 | Slight negative influence. |
+>
+> These contributions confirm that the model behaves coherently with expected clinical logic:  
+> markers like **s5** (serum triglycerides) and **BMI** raise predicted progression,  
+> while **s3** and **age** lower it — reflecting physiologically plausible patterns.
+>
+> **Relation to the thesis methodology:**
+> - This step operationalizes *Fidelity* and *Completeness* under the Technical Trust Dimension.  
+> - φ₀ anchors the additive decomposition, while φᵢ(x) provides measurable evidence of model reliability.  
+> - By documenting φᵢ(x) contributions, we make the model’s internal reasoning **empirically traceable** —  
+>   turning *trustworthiness* into observable, reproducible data.
 
 
-> **Next step:**  
-> We will now compute the **Completeness (τ)** metric to quantify Additivity empirically, verifying how closely  
-> \( f(x) \) matches \( φ₀ + Σφᵢ(x) \) within the tolerance set in `priors_clinical.yaml`.  
-> This is the first validation of a *method-guaranteed property* as a **trust metric**.
 
+### Step 7 — Compute Fidelity (Local Accuracy)
+
+> [!NOTE]
+> **Fidelity (Local Accuracy) as Empirical Trust Evidence**
+>
+> The analysis of φᵢ(x) contributions demonstrates **Local Accuracy**, one of the core properties of explainable models.  
+> Local Accuracy ensures that each prediction \( f(x) \) can be reconstructed as the sum of all feature contributions plus the baseline:
+>
+> $$
+> f(x) = \phi_0 + \sum_i \phi_i(x)
+> $$
+>
+> When this relation holds across validation instances, the model’s explanations are not heuristic but **empirically verifiable**.  
+> Fidelity therefore expresses *trust* as **quantitative alignment between model output and its additive reconstruction**.
+>
+> Within the *Technical Trust Dimension* of the XAI-TrustFramework:
+> - **φ₀ (expected baseline)** anchors the additive space of predictions.  
+> - **φᵢ(x)** represents measurable evidence of contribution for each feature.  
+> - The **MAE or R²** between \( f(x) \) and \( \phi_0 + \sum_i \phi_i(x) \) quantifies how faithfully the decomposition holds.
+>
+> In this sense, Fidelity is not an abstract notion of interpretability,  
+> but a **validation metric** confirming that the model’s internal logic behaves as a *stable, decomposable system* —  
+> a prerequisite for technical trustworthiness.
+>
+
+The **Fidelity metric** quantifies how well the additive reconstruction  
+\( \phi_0 + \sum_i \phi_i(x) \) matches the model’s actual predictions \( f(x) \).
+
+A low MAE (Mean Absolute Error) and a high correlation indicate that  
+the SHAP explanations are **faithful to the model’s behavior**.
+
+```python
+recon_val = shap_matrix_val.sum(axis=1) + phi0
+pred_val  = rf.predict(X_val)
+
+fidelity_mae = float(np.mean(np.abs(recon_val - pred_val)))
+corr = float(np.corrcoef(recon_val, pred_val)[0, 1])
+
+print(f"Fidelity MAE (↓ better): {fidelity_mae:.6f}")
+print(f"Fidelity Corr (↑ better): {corr:.4f}")
+```
+#### Output example:
+
+Fidelity MAE (↓ better): 0.006124
+Fidelity Corr (↑ better): 0.9994
+
+
+A high correlation indicates global alignment between the reconstructed and actual predictions.
+Together, these metrics empirically verify the Local Accuracy property —
+showing that SHAP explanations behave as a faithful, quantitative mirror of the model’s internal logic.
+
+---
+
+**Qué deja claro este bloque**
+- Fidelidad ≠ interpretación; es **verificación cuantitativa** del principio de *Additivity/Local Accuracy*.  
+- Cuanto menor sea el error (MAE) y mayor la correlación, más confiable es el modelo en su comportamiento explicativo.  
+- Este paso convierte la teoría (axioma de eficiencia) en **evidencia empírica reproducible** de confianza técnica.
