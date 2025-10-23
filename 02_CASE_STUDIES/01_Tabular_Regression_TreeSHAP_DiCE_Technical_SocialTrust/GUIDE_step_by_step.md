@@ -462,9 +462,62 @@ MAE (validation): 43.217
 >   In the framework’s hierarchy, MAE is part of the **pre-XAI reliability layer** — it assesses *model adequacy* before trust metrics are applied.
 
 
-[!NOTE]
-Why use a baseline first?
-Establishing a stable baseline avoids confusing the performance of the model itself
-with the quality of the explanations.
-Once fidelity, additivity, consistency, and other trust metrics are applied,
-we can attribute differences in behavior to the explainability methods — not to model instability.
+>[!NOTE]
+>Why use a baseline first?
+>Establishing a stable baseline avoids confusing the performance of the model itself
+>with the quality of the explanations.
+>Once fidelity, additivity, consistency, and other trust metrics are applied,
+>we can attribute differences in behavior to the explainability methods — not to model instability.
+>
+
+### Step 5.1 — Compute TreeSHAP attributions (interventional)
+
+```python
+import shap
+import numpy as np
+
+shap_explainer = shap.TreeExplainer(
+    rf,
+    data=X_train,                       # background dataset for expectations
+    feature_perturbation="interventional"  # mitigates correlation artefacts
+)
+
+# SHAP on the validation split
+shap_vals_val = shap_explainer.shap_values(X_val)
+phi0 = shap_explainer.expected_value
+
+# Ensure 2D ndarray (n_instances x n_features)
+shap_matrix_val = np.asarray(shap_vals_val)
+print("SHAP matrix shape:", shap_matrix_val.shape)
+print("Expected value (phi0):", float(phi0))
+```
+
+#### Why interventional?
+It approximates do()-style interventions on individual features, which helps reduce artefacts from feature correlation compared to purely independent perturbations—particularly important with tabular data.
+
+#### Outputs captured:
+
+expected_value (φ₀) — baseline model output with no feature contributions.
+
+shap_matrix_val (φ) — attribution matrix with shape (n_instances × n_features) on the validation split.
+
+#### Checks:
+
+For regression, shap_values returns a 2D matrix; expected_value is a scalar.
+
+Ensure the background data (data=X_train) matches your training distribution to keep expectations meaningful.
+
+> [!NOTE]
+> **Conceptual link — Additivity (→ Completeness)**
+>
+> TreeSHAP satisfies **Additivity** by design.  
+> Empirically, we test its observable notion — **Completeness** — by verifying that:
+>
+> $$
+> f(x) \approx \phi_0 + \sum_i \phi_i(x)
+> $$
+>
+> within a tolerance threshold **τ**, defined in  
+> `priors_clinical.yaml` → `tolerances.additivity_abs_tau`.  
+> This validation is first performed on the **validation** split and later replicated on the **test** split.
+
