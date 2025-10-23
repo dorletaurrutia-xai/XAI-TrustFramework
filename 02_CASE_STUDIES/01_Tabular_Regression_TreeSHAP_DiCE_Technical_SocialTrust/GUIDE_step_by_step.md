@@ -777,7 +777,7 @@ Once downloaded, move the file into your local repository:
 
 01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/results/shap_explanations_sample.csv
 
-> [!PIT]
+> [!TIP]
 > **Result Analysis — SHAP contributions (φᵢ)**
 >
 > The file `results/shap_explanations_sample.csv` combines each validation instance  
@@ -850,7 +850,7 @@ Completeness ratio (↑ better): 0.955 with tol=5.0
 > behaves predictably and remains stable within predefined tolerance ranges —  
 > turning an abstract axiom into an **empirically testable trust guarantee**.
 
-> [!PIT]
+> [!TIP]
 > **Result Analysis — Completeness (Additivity within τ = 5.0)**
 >
 > **Observed values:**
@@ -939,7 +939,7 @@ showing that SHAP explanations behave as a faithful, quantitative mirror of the 
 - Cuanto menor sea el error (MAE) y mayor la correlación, más confiable es el modelo en su comportamiento explicativo.  
 - Este paso convierte la teoría (axioma de eficiencia) en **evidencia empírica reproducible** de confianza técnica.
 
-> [!PIT]
+> [!TIP]
 > **Result Analysis — Fidelity (Local Accuracy)**
 >
 > **Observed values:**
@@ -1020,7 +1020,7 @@ Stability (cosine) mean±std: 0.9812 ± 0.0074
 > ensuring that model explanations behave as *stable functions* of the input  
 > rather than as *volatile or noise-sensitive artifacts*.
 
-> [!PIT]
+> [!TIP]
 > **Result Analysis — Stability (Consistency under ε = configured value)**
 >
 > **Observed distribution:** cosine similarities between SHAP vectors  
