@@ -1134,3 +1134,75 @@ Stability (cosine) mean±std: 0.9812 ± 0.0074
 > Within the *XAI-TrustFramework*, these rules operationalize the **Social Trust Dimension**,  
 > ensuring that the model’s suggested changes remain **actionable, feasible, and explainable**  
 > under realistic domain constraints.
+
+> [!NOTE]
+> **Objective Function — DiCE as Multi-Objective Optimization (Proximity · Diversity · Feasibility)**
+>
+> Let \( f:\mathbb{R}^n \rightarrow \mathbb{R} \) be the trained regression model, an instance \( x \in \mathbb{R}^n \), and a set of \(K\) counterfactuals \( \mathcal{C}=\{x'_1,\dots,x'_K\} \).
+> DiCE searches for \( \mathcal{C} \) that **minimally change** \( x \), **achieve a desired outcome**, and **remain feasible and diverse** under domain constraints.
+>
+> ### 1) Desired outcome (from `dice_constraints.yaml → outcome`)
+> For a **target range** \([y_{\min}, y_{\max}]\) (e.g., median ± margin):
+> \[
+> \mathcal{L}_{\text{pred}}(x'_k) =
+> \begin{cases}
+> y_{\min} - f(x'_k) & \text{if } f(x'_k) < y_{\min}\\[2pt]
+> 0                  & \text{if } y_{\min} \le f(x'_k) \le y_{\max}\\[2pt]
+> f(x'_k) - y_{\max} & \text{if } f(x'_k) > y_{\max}
+> \end{cases}
+> \]
+> This **hinge-to-band** loss drives \( f(x'_k) \) into the band.
+>
+> ### 2) Proximity to the original instance (from `search.proximity_metric`, `feasibility.per_feature_costs`)
+> With feature-wise costs \( w_i>0 \) and a scaling \( s_i \) (e.g., feature std), DiCE penalizes distance:
+> - **L1 proximity**: \( d_1(x,x'_k)=\sum_i w_i\,\frac{|x_i-x'_{k,i}|}{s_i} \)
+> - **L2 proximity**: \( d_2(x,x'_k)=\sqrt{\sum_i w_i\,\Big(\frac{x_i-x'_{k,i}}{s_i}\Big)^2} \)
+> \[
+> \mathcal{L}_{\text{prox}}(x'_k) = d_{\{1,2\}}(x,x'_k)
+> \]
+> Costs come from `priors_clinical.yaml → costs` unless overridden in `dice_constraints.yaml`.
+>
+> ### 3) Diversity among counterfactuals (from `search.total_cfs_per_instance`, `search.diversity_weight`)
+> Encourage alternatives by **repelling** CFs:
+> \[
+> \mathcal{L}_{\text{div}}(\mathcal{C}) =
+> -\frac{2}{K(K-1)} \sum_{i<j} \; \mathrm{dist}(x'_i,x'_j)
+> \]
+> where \( \mathrm{dist} \) uses the same metric as proximity (L1/L2). The minus sign makes larger mutual distances reduce the total loss.
+>
+> ### 4) Sparsity / actionability (optional)
+> Limit how many features change using an \( \ell_1 \) surrogate of \( \ell_0 \):
+> \[
+> \mathcal{L}_{\text{sparse}}(x'_k) = \sum_{i \in \text{actionable}} \mathbf{1}[|x_i-x'_{k,i}|>\epsilon_0]
+> \;\approx\; \sum_{i \in \text{actionable}} \frac{|x_i-x'_{k,i}|}{s_i+\delta}
+> \]
+> Profiles (`profiles.patient.max_changes`, `max_step_relative`) constrain magnitude and count of edits.
+>
+> ### 5) Feasibility & plausibility constraints (hard constraints)
+> - **Immutables**: \( x'_{k,i}=x_i \) for \( i \in \text{immutable} \) (`feasibility.immutable_features`).
+> - **Bounds**: \( \text{min}_i \le x'_{k,i} \le \text{max}_i \) (`feasibility.bounds_source`, `per_feature_bounds`).
+> - **Band monotonicity**: enforce \( \mathcal{L}_{\text{pred}}(x'_k) \) non-increasing across search steps (`plausibility_checks.enforce_monotonic_target_improvement`).
+> - **Minimum CF diversity**: average pairwise distance \( \ge \) `plausibility_checks.min_diversity_distance`.
+>
+> ### 6) Joint objective (weights from YAML)
+> With weights \( \lambda_{\text{pred}}, \lambda_{\text{prox}}, \lambda_{\text{div}}, \lambda_{\text{sparse}} \) (implicitly set by DiCE + `search.diversity_weight`):
+> \[
+> \min_{\mathcal{C}}\;
+> \sum_{k=1}^K \Big[
+> \lambda_{\text{pred}}\,\mathcal{L}_{\text{pred}}(x'_k)
+> + \lambda_{\text{prox}}\,\mathcal{L}_{\text{prox}}(x'_k)
+> + \lambda_{\text{sparse}}\,\mathcal{L}_{\text{sparse}}(x'_k)
+> \Big]
+> \;+\; \lambda_{\text{div}}\,\mathcal{L}_{\text{div}}(\mathcal{C})
+> \quad\text{s.t. feasibility constraints.}
+> \]
+>
+> **Backend note (engineer’s view).** For `backend: sklearn`, DiCE uses **gradient-free** or mixed strategies (sampling + local search) to satisfy hard constraints first (immutables/bounds), then optimizes the soft objectives (proximity/diversity) until `search.stop_when_k_found` or the budget is reached.
+>
+> ### 7) How this maps to Trust Metrics (Social Dimension)
+> - **Actionability**: fraction of CFs that reach the desired band and respect constraints (immutables, bounds, profile limits).  
+> - **Diversity**: mean pairwise distance among valid CFs per instance (L1/L2), must exceed `min_diversity_distance`.  
+> - **Plausibility**: fraction of CFs that remain within `bounds_source` and pass post-generation checks (monotonic improvement).
+>
+> This makes counterfactuals a **behavioral audit** of the model: results are **verifiable** (hit the band), **controllable** (small, sparse changes), and **plural** (diverse valid paths) under domain-informed constraints.
+
