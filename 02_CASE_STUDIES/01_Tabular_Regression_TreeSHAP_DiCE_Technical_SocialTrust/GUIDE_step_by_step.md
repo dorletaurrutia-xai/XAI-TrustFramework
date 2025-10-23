@@ -1,0 +1,153 @@
+# Pilot A · Step-by-Step Runbook (TreeSHAP + DiCE)
+
+> Objective: run the pilot end-to-end, verify reproducibility, and validate trust metrics — technical (fidelity, completeness, stability) and social (actionability, diversity, plausibility).
+
+---
+
+## 0) Prerequisites
+- Python ≥ 3.10, Jupyter/Colab
+- Repository cloned with all `configs/` files
+- GPU **not** required
+
+---
+
+## 1) Installation
+```python
+# Cell 1 — dependencies
+# We install the core libraries for the pilot:
+# - dice-ml: for counterfactual explanations (DiCE)
+# - shap: for feature attribution explanations
+# - scikit-learn: for the base model (RandomForestRegressor)
+# - pandas/numpy: for data handling
+# The --quiet flag suppresses verbose logs.
+!pip install dice-ml shap scikit-learn pandas numpy --quiet
+```
+### Step 1.2 — Verify library versions
+
+```python
+import numpy, pandas, sklearn, shap, dice_ml
+from importlib.metadata import version, PackageNotFoundError
+
+print("NumPy:", numpy.__version__)
+print("Pandas:", pandas.__version__)
+print("scikit-learn:", sklearn.__version__)
+print("SHAP:", shap.__version__)
+
+# dice-ml does not expose __version__; we read it from package metadata
+try:
+    print("dice-ml:", version("dice-ml"))
+except PackageNotFoundError:
+    print("dice-ml: (not found in metadata)")
+```
+#### Explanation:
+This step confirms the environment versions used in the pilot.
+Version logging ensures that SHAP and DiCE results can be reproduced under the same dependency setup.
+Because dice-ml does not include a built-in __version__ attribute, we retrieve it through Python’s package metadata system.
+
+#### Expected output (example):
+
+NumPy: 1.26.4
+Pandas: 2.2.2
+scikit-learn: 1.5.2
+SHAP: 0.46.0
+dice-ml: 0.10
+
+
+#### Checkpoint:
+Make sure versions match (or are close to) those listed above.
+If a package mismatch causes unexpected metric drift, document it in results/metadata.json.
+
+### Step 1.3 — Create and verify the project directory structure
+
+```python
+from pathlib import Path
+import json
+
+# If this notebook is inside notebooks/, move up to the project root
+BASE = Path.cwd().resolve().parent
+PROJECT = BASE / "01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust"
+
+# Create subfolders for data, results, configs, and notebooks
+for p in [
+    PROJECT / "data/raw",
+    PROJECT / "data/processed",
+    PROJECT / "results/visuals",
+    PROJECT / "configs",
+    PROJECT / "notebooks",
+]:
+    p.mkdir(parents=True, exist_ok=True)
+
+print("Project structure created at:", PROJECT)
+```
+
+#### Explanation:
+This step ensures that the directory structure matches the repository layout.
+It uses pathlib to handle paths consistently across operating systems.
+Each folder (data, results, configs, notebooks) is created if missing — avoiding errors during file export.
+
+#### Expected output (example):
+
+Project structure created at: /content/repo_clone/01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust
+
+
+#### Checkpoint:
+Confirm that the following folders now exist:
+
+data/raw/
+data/processed/
+results/visuals/
+configs/
+notebooks/
+
+
+If any folder is missing, check the relative path of the notebook — it must be executed from inside /notebooks/.
+
+### Step 2.1 — Load seeds and tolerance priors
+
+```python
+# Load seeds and define SEED_SK (safe fallback)
+import json, yaml
+
+with open(PROJECT / "configs" / "seeds.json") as f:
+    SEEDS = json.load(f)
+
+SEED_SK = SEEDS.get("sklearn", SEEDS.get("data_split_seed", 42))
+
+# (optional if using these parameters later)
+try:
+    with open(PROJECT / "configs" / "priors_clinical.yaml") as f:
+        PRIORS = yaml.safe_load(f)
+    TAU = PRIORS["tolerances"]["completeness_abs_tau"]
+    EPS = PRIORS["tolerances"]["stability_perturbation"]["epsilon"]
+except FileNotFoundError:
+    TAU, EPS = 1e-6, 0.01  # default values if YAML not yet present
+```
+
+#### Explanation:
+This step loads the random seeds and tolerance parameters used across the pilot:
+
+seeds.json ensures reproducibility in data splits and model training.
+
+priors_clinical.yaml defines tolerance thresholds and perturbation noise used in completeness (τ) and stability (ε) metrics.
+
+τ (tau) = maximum absolute deviation allowed between model prediction and SHAP reconstruction.
+
+ε (epsilon) = magnitude of noise used to test explanation stability.
+
+If the YAML file is missing (e.g., first run), the notebook sets safe defaults (τ=1e-6, ε=0.01) to allow smooth execution.
+
+#### Expected output (example):
+
+Loaded seeds: {'sklearn': 123, 'data_split_seed': 42}
+TAU = 0.001
+EPS = 0.02
+
+
+#### Checkpoint:
+Verify that both files exist under configs/ and contain the correct parameters:
+
+configs/seeds.json
+configs/priors_clinical.yaml
+
+
+If priors_clinical.yaml is missing, defaults will be used but must later be replaced with validated values for reproducible reporting.
