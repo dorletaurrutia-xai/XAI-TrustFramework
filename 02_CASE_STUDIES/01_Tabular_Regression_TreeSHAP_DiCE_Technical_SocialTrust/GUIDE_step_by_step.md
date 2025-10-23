@@ -492,6 +492,67 @@ print("SHAP matrix shape:", shap_matrix_val.shape)
 print("Expected value (phi0):", float(phi0))
 ```
 
+> [!NOTE]
+> **Conceptual Note — Why TreeSHAP here? (Data → Task → Method → Trust Link)**
+>
+> **Data Type**  
+> The dataset used (`sklearn.diabetes`) is *tabular*, with continuous numeric variables that are moderately correlated (e.g., BMI, blood pressure, glucose indicators).  
+> Tabular data require **local additive explanations** that can attribute prediction outcomes to individual input features in a consistent, quantitative way.
+>
+> **Task Type**  
+> The task is **regression** — predicting a continuous clinical progression score.  
+> For regression models, we need explanations that are:
+> - **additive** (sum of contributions equals prediction),
+> - **signed** (each feature increases or decreases the prediction),
+> - **quantitatively consistent** across similar inputs.
+>
+> **XAI Method: TreeSHAP**  
+> TreeSHAP (a variant of SHAP specialized for tree-based models) provides these guarantees **by design**.  
+> It decomposes each prediction \( f(x) \) into:
+>
+> $$
+> f(x) = \phi_0 + \sum_i \phi_i(x)
+> $$
+>
+> where:
+> - \( \phi_0 \) is the model’s expected output (baseline prediction),
+> - \( \phi_i(x) \) is the contribution of each feature \( i \).
+>
+> **Method-Guaranteed Properties (theoretical)**  
+> TreeSHAP is mathematically guaranteed to satisfy:
+>
+> | Property | Description | Mathematical meaning |
+> |-----------|--------------|----------------------|
+> | **Local Accuracy (Additivity)** | The sum of feature contributions plus baseline equals the model output. | \( f(x) = \phi_0 + \sum_i \phi_i(x) \) |
+> | **Consistency** | If a model change increases a feature’s effect, its attribution will not decrease. | Monotonic fairness in contributions |
+> | **Missingness** | Features with no influence receive zero attribution. | \( \phi_i(x) = 0 \) if feature absent |
+>
+> **Trust Notions (empirical, Technical Dimension)**  
+> In this pilot, these theoretical properties are **operationalized as Technical Trust Notions**:
+>
+> | Method-Guaranteed Property | Trust Notion (empirical) | Trust Metric | Parameter |
+> |-----------------------------|---------------------------|---------------|------------|
+> | Additivity | **Completeness** | % instances where \( |f(x) - (\phi_0 + \sum_i \phi_i(x))| \leq \tau \) | τ (`additivity_abs_tau`) |
+> | Local Accuracy | **Fidelity** | \( R^2 \) or MAE between \( f(x) \) and reconstruction | — |
+> | Consistency | **Stability** | Similarity of SHAP vectors under ε perturbations | ε (`consistency_perturbation.epsilon`) |
+>
+> **Why Technical Dimension only?**  
+> TreeSHAP explains *how the model behaves*, not *how a person can act upon it*.  
+> Its goal is to ensure **internal reliability and mathematical coherence** of the model’s reasoning — core aspects of the *technical dimension* of trust.  
+> Human-centered notions (like actionability or plausibility) are later addressed through **DiCE**.
+>
+> *Summary:*  
+> In this regression context:
+> ```
+> Data → Tabular
+> Task → Regression
+> Method → TreeSHAP
+> Properties → Additivity, Consistency, Missingness
+> Trust Notions → Fidelity, Completeness, Stability
+> Dimension → Technical
+> ```
+
+
 #### Why interventional?
 It approximates do()-style interventions on individual features, which helps reduce artefacts from feature correlation compared to purely independent perturbations—particularly important with tabular data.
 
