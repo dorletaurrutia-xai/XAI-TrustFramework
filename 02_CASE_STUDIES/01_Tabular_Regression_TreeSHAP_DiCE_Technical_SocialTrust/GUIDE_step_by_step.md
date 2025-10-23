@@ -102,6 +102,7 @@ notebooks/
 
 If any folder is missing, check the relative path of the notebook — it must be executed from inside /notebooks/.
 
+## 2) Configuration
 ### Step 2.1 — Load seeds and tolerance priors
 
 ```python
@@ -198,6 +199,7 @@ If priors_clinical.yaml is missing, defaults will be used but must later be repl
 >
 >For the full theoretical mapping between method-guaranteed properties, trust notions, and metrics, see the XAI-TrustFramework Conceptual Model
 >
+## 3) Dataset
 ### Step 3.1 — Load and save the clinical dataset
 
 ```python
@@ -391,6 +393,7 @@ y_test.csv
 
 Once uploaded, the processed splits will be available for all notebooks in the pilot (TreeSHAP + DiCE) to ensure consistent, reproducible results.
 
+## 4) Train model
 ### Step 4.1 — Train the baseline model (RandomForestRegressor)
 
 ```python
@@ -470,6 +473,7 @@ MAE (validation): 43.217
 >we can attribute differences in behavior to the explainability methods — not to model instability.
 >
 
+## 5) SHAP
 ### Step 5.1 — Compute TreeSHAP attributions (interventional)
 
 ```python
@@ -749,7 +753,7 @@ Once uploaded, these SHAP outputs can be reused by later notebooks to compute tr
 > - It shows that *trustworthiness* is not abstract — it is **operationalized** by testing whether the model obeys fairness axioms in practice.  
 > - It establishes the **first empirical layer** of the thesis methodology: from *theoretical guarantees* → *operational notions* → *measurable metrics*.
 
-### Step 6.2 — Save and upload SHAP explanation sample
+### Step 5.4 — Save and upload SHAP explanation sample
 
 After combining the validation data with SHAP contributions,  
 save a representative sample under `/results/` for traceability and future interpretability audits.
@@ -805,7 +809,8 @@ Once downloaded, move the file into your local repository:
 > - By documenting φᵢ(x) contributions, we make the model’s internal reasoning **empirically traceable** —  
 >   turning *trustworthiness* into observable, reproducible data.
 
-### Step 7 — Compute Completeness (Additivity within tolerance)
+## 6) SHAP Metrics
+### Step 6.1 — Compute Completeness (Additivity within tolerance)
 
 Completeness measures the share of validation instances  
 where the additive reconstruction \( \phi_0 + \sum_i \phi_i(x) \)  
@@ -876,7 +881,7 @@ Completeness ratio (↑ better): 0.955 with tol=5.0
 > structurally stable, and technically trustworthy**.
 
 
-### Step 8 — Compute Fidelity (Local Accuracy)
+### Step 6.2 — Compute Fidelity (Local Accuracy)
 
 > [!NOTE]
 > **Fidelity (Local Accuracy) as Empirical Trust Evidence**
@@ -959,7 +964,7 @@ showing that SHAP explanations behave as a faithful, quantitative mirror of the 
 > SHAP can therefore be regarded as a *trust-preserving mechanism* within the Technical Trust Dimension  
 > of the **XAI-TrustFramework**.
 
-### Step 9 — Compute Stability (Consistency under ε-perturbation)
+### Step 6.3 — Compute Stability (Consistency under ε-perturbation)
 
 Stability measures how robust the SHAP explanations are  
 when small perturbations (ε) are applied to the input features.  
@@ -1042,3 +1047,32 @@ Stability (cosine) mean±std: 0.9812 ± 0.0074
 > This supports Stability as a measurable and reproducible trust property —  
 > essential for verifying that the explainability layer behaves predictably  
 > under realistic data variation (ε).
+
+## 7) DICE
+> [!NOTE]
+> **Theoretical Foundations — Counterfactual Reasoning and Model Characterization**
+>
+> Counterfactual explanations do **not** attempt to “open” the model or inspect its internals.  
+> Instead, they **characterize the model’s functional behavior** by observing how its outputs  
+> respond to controlled and minimal input variations.
+>
+> In formal terms, a counterfactual instance \( x' \) is a nearby point in the input space such that  
+> \( f(x') \) produces a desired outcome different from \( f(x) \).  
+> By analyzing how the prediction changes between \( x \) and \( x' \),  
+> we can describe *what transformations of the input space the model recognizes as meaningful*.
+>
+> From an engineering perspective, DiCE provides a **systematic perturbation framework** that:
+> - Operates over the trained model as a *function* \( f: \mathbb{R}^n \to \mathbb{R} \),  
+>   not over its architecture or parameters.  
+> - Evaluates **sensitivity, controllability, and feasibility** of the model’s decision surface.  
+> - Enables verification of *actionability* and *plausibility* under domain constraints,  
+>   rather than introspection of internal weights.
+>
+> This aligns with the principle of **observable characterization**:  
+> rather than “opening” the black box, we study its **external response to structured inputs**.  
+> Counterfactual reasoning therefore becomes a *functional audit* —  
+> mapping how real-world variables interact within the model’s learned representation.
+>
+> Within the *XAI-TrustFramework*, this technique supports the **Social Trust Dimension**,  
+> translating technical model behavior into actionable, human-interpretable changes  
+> that remain bounded by feasibility and domain knowledge.
