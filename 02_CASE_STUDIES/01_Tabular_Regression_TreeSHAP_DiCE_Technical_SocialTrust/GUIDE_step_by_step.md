@@ -645,12 +645,13 @@ Once uploaded, these SHAP outputs can be reused by later notebooks to compute tr
 >
 > The mathematical core is **Shapley’s efficiency theorem** (1953), which guarantees a *unique solution* for distributing a system’s output among its inputs, subject to three axioms:
 >
-> | Axiom | Engineering interpretation | Relevance for system validation |
-> |--------|-----------------------------|--------------------------------|
-> | **Efficiency (Additivity)** | Total output equals the sum of identifiable input contributions. | Enables reconstructing predictions with verifiable tolerance (τ). |
-> | **Symmetry (Consistency)** | Inputs with equivalent impact receive equal attribution. | Ensures invariance across symmetrical parameter states. |
-> | **Dummy (Missingness)** | Inputs with zero influence contribute nothing to the output. | Enforces sparsity and semantic coherence in the decomposition. |
->
+>| **Shapley Axiom / Property** | **Engineering Interpretation** | **Trust Notion** (empirical) | **Metric / Formula** | **What it means in your model** | **File** | **Status in this pilot** |
+>|-------------------------------|--------------------------------|------------------------------|----------------------|----------------------------------|-----------|---------------------------|
+>| **Efficiency / Additivity** | The total output equals the sum of individual input contributions. | **Completeness** | % of instances where \( | f(x) - [\phi_0 + \sum_i \phi_i(x)] | \leq \tau \) | Verifies that predictions can be reconstructed from the sum of all SHAP contributions plus the baseline. | — | ✅ Operationalized (Additivity → Completeness, τ) |
+>| **Local Accuracy** | Each instance’s prediction equals the sum of its feature contributions. | **Fidelity** | \( R^2 \) or MAE between \( f(x) \) and \( \phi_0 + \sum_i \phi_i(x) \) | Evaluates how faithfully the additive reconstruction matches the model’s actual output. Ensures per-instance coherence. | `metrics_summary_val.csv` | ✅ Operationalized |
+>| **Symmetry / Consistency** | Inputs with equivalent impact receive equal attributions. | **Stability** | Similarity of SHAP vectors under ε-perturbations (cosine, Spearman) | Tests whether small input perturbations preserve the relative ranking and direction of feature contributions. | `stability_analysis.csv` | ✅ Operationalized (Consistency → Stability, ε) |
+>| **Dummy / Missingness** | Inputs that have no influence receive zero attribution. | — (not quantified) | — | Ensures that irrelevant or constant features have φ = 0. This can be checked analytically but not empirically in this pilot. | — | ⚪ Not included in this pilot |
+
 > These axioms make SHAP a **model-agnostic decomposition operator**:  
 > it defines how to *represent and measure* contribution dynamics without accessing internal parameters.  
 > What results is not a “peek inside the box,” but a **measurable mapping between features and outputs**, preserving the system’s functional integrity.
