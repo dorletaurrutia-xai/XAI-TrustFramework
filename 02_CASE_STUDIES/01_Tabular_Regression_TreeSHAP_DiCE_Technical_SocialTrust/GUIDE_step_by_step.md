@@ -748,7 +748,33 @@ Once uploaded, these SHAP outputs can be reused by later notebooks to compute tr
 > - This analysis demonstrates how a **normative fairness principle** (from cooperative game theory) can be **empirically verified** in applied AI.  
 > - It shows that *trustworthiness* is not abstract — it is **operationalized** by testing whether the model obeys fairness axioms in practice.  
 > - It establishes the **first empirical layer** of the thesis methodology: from *theoretical guarantees* → *operational notions* → *measurable metrics*.
->
+
+### Step 6.2 — Save and upload SHAP explanation sample
+
+After combining the validation data with SHAP contributions,  
+save a representative sample under `/results/` for traceability and future interpretability audits.
+Files generated:
+
+results/shap_explanations_sample.csv
+
+
+This file shows, for each validation instance,
+how every feature (φᵢ) contributes to the model’s final prediction relative to the baseline (φ₀ ≈ 153.02).
+
+How to download from Colab
+
+In Colab’s left sidebar, open the results/ folder.
+
+Right-click the file shap_explanations_sample.csv → Download.
+
+Upload to GitHub
+
+Once downloaded, move the file into your local repository:
+
+01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/results/shap_explanations_sample.csv
+
+
+
 > **Next step:**  
 > We will now compute the **Completeness (τ)** metric to quantify Additivity empirically, verifying how closely  
 > \( f(x) \) matches \( φ₀ + Σφᵢ(x) \) within the tolerance set in `priors_clinical.yaml`.  
