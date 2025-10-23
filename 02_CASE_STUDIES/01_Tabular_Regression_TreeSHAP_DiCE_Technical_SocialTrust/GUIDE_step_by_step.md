@@ -805,9 +805,78 @@ Once downloaded, move the file into your local repository:
 > - By documenting φᵢ(x) contributions, we make the model’s internal reasoning **empirically traceable** —  
 >   turning *trustworthiness* into observable, reproducible data.
 
+### Step 7 — Compute Completeness (Additivity within tolerance)
+
+Completeness measures the share of validation instances  
+where the additive reconstruction \( \phi_0 + \sum_i \phi_i(x) \)  
+matches the model’s prediction \( f(x) \) **within a tolerance threshold (τ)**.
+
+The tolerance τ is defined in the configuration file:
+configs/priors_clinical.yaml → tolerances.additivity_abs_tau
+
+```python
+import yaml
+
+with open(PROJECT / "configs/priors_clinical.yaml") as f:
+    PRIORS = yaml.safe_load(f)
+
+tol = PRIORS["tolerances"]["additivity_abs_tau"]
+ok = np.isclose(recon_val, pred_val, atol=tol)
+completeness_ratio = float(ok.mean())
+
+print(f"Completeness ratio (↑ better): {completeness_ratio:.3f} with tol={tol}")
+```
+Output example:
+
+Completeness ratio (↑ better): 0.955 with tol=5.0
+
+> [!NOTE]
+> **Interpretation — Completeness as Additivity Validation**
+>
+> Completeness quantifies how often the SHAP additive identity  
+> $$\\( f(x) \approx \phi_0 + \sum_i \phi_i(x) \\)$$  
+> holds within an acceptable tolerance (τ).  
+>
+> A **high ratio** indicates that SHAP consistently preserves the additive reconstruction.  
+> It operationalizes the **Additivity** property as measurable evidence of internal coherence.  
+> τ acts as a **trust boundary**, defining the acceptable deviation between the explanation and the model output.  
+>
+> In the context of the **XAI-TrustFramework**, Completeness confirms that the technical decomposition  
+> behaves predictably and remains stable within predefined tolerance ranges —  
+> turning an abstract axiom into an **empirically testable trust guarantee**.
+
+> [!PIT]
+> **Result Analysis — Completeness (Additivity within τ = 5.0)**
+>
+> **Observed values:**
+> | Metric | Value | Tolerance (τ) | Interpretation |
+> |---------|--------|----------------|----------------|
+> | **Completeness Ratio** | 1.000 | 5.0 | 100% of instances satisfy the additive reconstruction within tolerance. |
+>
+> **Interpretation:**
+> - Every validation instance fulfills the identity  
+>   \\( f(x) \approx \phi_0 + \sum_i \phi_i(x) \\)  
+>   within the clinical tolerance defined in `priors_clinical.yaml`.  
+> - No deviations exceed τ = 5.0, confirming that SHAP’s additive explanation  
+>   is perfectly consistent with the model’s numerical outputs.  
+> - This means that SHAP preserves the **Additivity property** not just theoretically,  
+>   but *empirically* — the model’s logic and its explanation layer are fully aligned.
+>
+> **Methodological link:**
+> - Demonstrates the **Additivity → Completeness** chain of validation  
+>   within the *Technical Trust Dimension* of the XAI-TrustFramework.  
+> - Confirms that the decomposition behaves predictably within predefined trust boundaries.  
+> - Serves as a reproducible indicator that technical trust can be quantified  
+>   through verifiable mathematical relations, not subjective interpretation.
+>
+> **Conclusion:**  
+> Completeness = 1.0 (τ = 5.0) provides *strong empirical evidence*  
+> that SHAP’s additive structure maintains total internal coherence.  
+> In practice, this means the system’s explanations are **functionally faithful,  
+> structurally stable, and technically trustworthy**.
 
 
-### Step 7 — Compute Fidelity (Local Accuracy)
+### Step 8 — Compute Fidelity (Local Accuracy)
 
 > [!NOTE]
 > **Fidelity (Local Accuracy) as Empirical Trust Evidence**
@@ -890,43 +959,4 @@ showing that SHAP explanations behave as a faithful, quantitative mirror of the 
 > SHAP can therefore be regarded as a *trust-preserving mechanism* within the Technical Trust Dimension  
 > of the **XAI-TrustFramework**.
 
-### Step 8 — Compute Completeness (Additivity within tolerance)
-
-Completeness measures the share of validation instances  
-where the additive reconstruction \( \phi_0 + \sum_i \phi_i(x) \)  
-matches the model’s prediction \( f(x) \) **within a tolerance threshold (τ)**.
-
-The tolerance τ is defined in the configuration file:
-configs/priors_clinical.yaml → tolerances.additivity_abs_tau
-
-```python
-import yaml
-
-with open(PROJECT / "configs/priors_clinical.yaml") as f:
-    PRIORS = yaml.safe_load(f)
-
-tol = PRIORS["tolerances"]["additivity_abs_tau"]
-ok = np.isclose(recon_val, pred_val, atol=tol)
-completeness_ratio = float(ok.mean())
-
-print(f"Completeness ratio (↑ better): {completeness_ratio:.3f} with tol={tol}")
-```
-Output example:
-
-Completeness ratio (↑ better): 0.955 with tol=5.0
-
-> [!NOTE]
-> **Interpretation — Completeness as Additivity Validation**
->
-> Completeness quantifies how often the SHAP additive identity  
-> $$\\( f(x) \approx \phi_0 + \sum_i \phi_i(x) \\)$$  
-> holds within an acceptable tolerance (τ).  
->
-> A **high ratio** indicates that SHAP consistently preserves the additive reconstruction.  
-> It operationalizes the **Additivity** property as measurable evidence of internal coherence.  
-> τ acts as a **trust boundary**, defining the acceptable deviation between the explanation and the model output.  
->
-> In the context of the **XAI-TrustFramework**, Completeness confirms that the technical decomposition  
-> behaves predictably and remains stable within predefined tolerance ranges —  
-> turning an abstract axiom into an **empirically testable trust guarantee**.
 
