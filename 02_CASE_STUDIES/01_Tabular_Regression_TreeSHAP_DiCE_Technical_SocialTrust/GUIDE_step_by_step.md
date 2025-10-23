@@ -864,3 +864,29 @@ showing that SHAP explanations behave as a faithful, quantitative mirror of the 
 - Fidelidad ≠ interpretación; es **verificación cuantitativa** del principio de *Additivity/Local Accuracy*.  
 - Cuanto menor sea el error (MAE) y mayor la correlación, más confiable es el modelo en su comportamiento explicativo.  
 - Este paso convierte la teoría (axioma de eficiencia) en **evidencia empírica reproducible** de confianza técnica.
+
+> [!PIT]
+> **Result Analysis — Fidelity (Local Accuracy)**
+>
+> **Observed values:**
+> | Metric | Value | Interpretation |
+> |---------|--------|----------------|
+> | **Fidelity MAE** | 0.2049 | Very low reconstruction error — the additive SHAP model reproduces predictions with high precision. |
+> | **Fidelity Corr** | 0.99998 | Nearly perfect correlation between reconstructed and actual predictions. |
+>
+> **Interpretation:**
+> - The additive identity \( f(x) \approx \phi_0 + \sum_i \phi_i(x) \) holds across validation instances.  
+> - The SHAP decomposition behaves as a *stable and consistent mapping* of the model’s functional behavior.  
+> - There is no evidence of drift or explanation noise between model output and its reconstructed form.
+>
+> **Methodological link:**
+> - Confirms the **Local Accuracy** property — one of SHAP’s theoretical guarantees.  
+> - Serves as **empirical evidence of Fidelity**, operationalizing *Technical Trust* through measurable alignment.  
+> - Demonstrates that the explainability layer does not alter or distort model behavior,  
+>   but rather mirrors it with quantitative consistency.
+>
+> **Conclusion:**  
+> The model’s predictions and its additive explanations are numerically coherent.  
+> SHAP can therefore be regarded as a *trust-preserving mechanism* within the Technical Trust Dimension  
+> of the **XAI-TrustFramework**.
+
