@@ -632,3 +632,60 @@ phi0.json
 Once uploaded, these SHAP outputs can be reused by later notebooks to compute trust metrics
 (Completeness, Fidelity, and Stability) without recomputing explanations.
 
+> [!ANALYSIS]
+> **Result Analysis — SHAP baseline validation (φ₀, φᵢ(x), and their epistemic meaning)**
+>
+> **Theoretical foundation — from cooperative game theory to explainability**  
+> SHAP (SHapley Additive exPlanations) is grounded in **cooperative game theory**, where a model’s prediction \( f(x) \) is treated as the *payout* of a coalition of features.  
+> Each feature is conceptualized as a “player” that contributes to the final outcome depending on which other features are present.  
+> The **Shapley value** (Shapley, 1953) provides a *unique fair distribution rule* of the total payoff among the players, satisfying three axioms:
+>
+> | Axiom | Meaning in game theory | Translated to model explainability |
+> |--------|------------------------|------------------------------------|
+> | **Efficiency (Additivity)** | The total value of the coalition is distributed among all players. | The sum of feature contributions plus the baseline equals the prediction. |
+> | **Symmetry (Consistency)** | Players contributing equally receive equal shares. | Features with the same effect get equal attributions. |
+> | **Dummy (Missingness)** | Players not affecting the outcome get zero payoff. | Irrelevant features have φ = 0. |
+>
+> These axioms guarantee that attributions are not arbitrary, but **mathematically justified** under fairness principles.  
+> This makes SHAP not just an explanation method — but a formal *translation of fairness theory* into algorithmic reasoning.
+>
+> **Computational formalization — TreeSHAP and its expected value (φ₀)**  
+> TreeSHAP implements this logic efficiently for tree-based models like `RandomForestRegressor`.  
+> It computes, for each instance:
+> \[
+> f(x) = \phi_0 + \sum_i \phi_i(x)
+> \]
+> where:
+> - \( \phi_0 \) is the **expected prediction** (baseline when no feature contributes).  
+> - \( \phi_i(x) \) is the **marginal contribution** of feature *i* across all possible coalitions.
+>
+> The resulting **SHAP matrix (66 × 10)** captures these local attributions across all validation samples.  
+> The computed baseline **φ₀ ≈ 153.02** represents the model’s expected output, aligning with the average clinical progression score predicted by the model over the training distribution.
+>
+> **Methodological integration — empirical trust in the technical dimension**  
+> In the *XAI-TrustFramework*, this step operationalizes the **Technical Dimension of Trust**, linking formal guarantees with measurable evidence:
+>
+> | Method-Guaranteed Property (theoretical) | Trust Notion (empirical) | Metric | File |
+> |-------------------------------------------|---------------------------|---------|------|
+> | Additivity (Efficiency) | Completeness | \( | f(x) - (φ₀ + Σφᵢ(x)) | ≤ τ \) | `metrics_summary_val.csv` |
+> | Local Accuracy | Fidelity | \( R² \) or MAE between \( f(x) \) and reconstruction | `metrics_summary_val.csv` |
+> | Consistency (Symmetry) | Stability | Similarity of φ vectors under ε perturbations | `stability_analysis.csv` |
+>
+> By generating SHAP values, we empirically access the *internal logic* of the model, allowing the theoretical properties of fairness and consistency to be **quantified** as reproducible data.  
+> This makes SHAP a **bridge between cooperative fairness theory and technical trust measurement**.
+>
+> **Interpretation of results (φ₀ ≈ 153.02)**  
+> - φ₀ is the model’s **expected prediction baseline** — the outcome when no specific feature shifts the result.  
+> - Each φᵢ(x) describes **how much feature *i* pushes this instance’s prediction** above or below φ₀.  
+> - In clinical terms, positive contributions (e.g., BMI, s5, bp) indicate higher predicted progression; negative ones (e.g., s3, age) lower progression.
+>
+> **Relevance to the thesis methodology**  
+> - This analysis demonstrates how a **normative fairness principle** (from cooperative game theory) can be **empirically verified** in applied AI.  
+> - It shows that *trustworthiness* is not abstract — it is **operationalized** by testing whether the model obeys fairness axioms in practice.  
+> - It establishes the **first empirical layer** of the thesis methodology: from *theoretical guarantees* → *operational notions* → *measurable metrics*.
+>
+> **Next step:**  
+> We will now compute the **Completeness (τ)** metric to quantify Additivity empirically, verifying how closely  
+> \( f(x) \) matches \( φ₀ + Σφᵢ(x) \) within the tolerance set in `priors_clinical.yaml`.  
+> This is the first validation of a *method-guaranteed property* as a **trust metric**.
+
