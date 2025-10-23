@@ -1076,3 +1076,61 @@ Stability (cosine) mean±std: 0.9812 ± 0.0074
 > Within the *XAI-TrustFramework*, this technique supports the **Social Trust Dimension**,  
 > translating technical model behavior into actionable, human-interpretable changes  
 > that remain bounded by feasibility and domain knowledge.
+
+> [!NOTE]
+> **Conceptual Foundations — Counterfactual Constraints and Feasibility Logic**
+>
+> The `dice_constraints.yaml` file defines how counterfactual (CF) examples  
+> are generated, validated, and bounded.  
+> These constraints do not open the model but **govern the search space**  
+> in which functional perturbations are tested — turning counterfactual reasoning  
+> into a *controlled experiment* on the model’s behavior.
+>
+> ### Key sections:
+>
+> **1. Outcome definition**
+> - Specifies the *target variable* and the *desired outcome condition*.  
+>   In this pilot, `type: range` means CFs are generated so that  
+>   \\( f(x') \\) falls within a tolerance band around the median of the validation target (±10 units).  
+>   This approach treats CF generation as *bounded optimization*, not prediction reversal.
+>
+> **2. Search strategy**
+> - `total_cfs_per_instance`: number of counterfactuals per instance (default = 3).  
+> - `diversity_weight`: trade-off between **proximity** (minimal input change)  
+>   and **diversity** (alternative plausible paths).  
+> - `proximity_metric`: distance metric (L1 or L2) used to evaluate similarity between instances.  
+> - `stop_when_k_found`: stops search when sufficient diverse CFs are found,  
+>   optimizing computational efficiency.
+>
+> **3. Feasibility layer**
+> - Defines which features are **immutable** (e.g., `sex`, `age`)  
+>   and which are **actionable** (modifiable in realistic scenarios, e.g., `bmi`, `bp`).  
+> - Bounds are derived from `priors_clinical.yaml` percentile ranges,  
+>   ensuring that generated CFs remain within *data-informed limits*.  
+> - Optional per-feature bounds or costs can override priors if domain knowledge requires.
+>
+> **4. Plausibility checks**
+> - Post-generation filters enforce that CFs are *clinically and logically consistent*:  
+>   - `enforce_monotonic_target_improvement`: CF must move prediction toward desired range.  
+>   - `reject_if_outside_bounds`: CFs outside priors are invalidated.  
+>   - `min_diversity_distance`: ensures counterfactuals represent distinct solution paths.
+>
+> **5. User profiles**
+> - Defines constraints according to user context:  
+>   - *Clinician profile*: can alter up to 5 features, maximizing interpretive power.  
+>   - *Patient profile*: limited to 3 actionable features and smaller relative steps  
+>     (≤ 0.5× the standard deviation) for realism and social feasibility.
+>
+> ---
+>
+> **Engineering interpretation**
+>
+> - The constraints transform DiCE from a heuristic generator into a **functional test bench**:  
+>   each CF represents a controlled perturbation vector \\( \Delta x \\)  
+>   satisfying feasibility and plausibility criteria.  
+> - This approach characterizes how the model reacts to valid, bounded interventions,  
+>   treating counterfactuals as **behavioral probes** — not as introspective tools.
+>
+> Within the *XAI-TrustFramework*, these rules operationalize the **Social Trust Dimension**,  
+> ensuring that the model’s suggested changes remain **actionable, feasible, and explainable**  
+> under realistic domain constraints.
