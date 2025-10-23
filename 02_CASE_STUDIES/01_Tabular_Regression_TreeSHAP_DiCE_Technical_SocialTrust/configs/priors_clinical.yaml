@@ -1,34 +1,35 @@
 # Clinical & data priors for the diabetes regression pilot
-# Nota: las features de sklearn.diabetes vienen estandarizadas (z-score).
-# Aquí definimos cómo derivar límites y tolerancias a partir de los datos, sin asumir rangos clínicos absolutos.
+# Note: features from sklearn.diabetes are standardized (z-score).
+# This file defines how to derive limits and tolerances from the data itself,
+# without assuming absolute clinical ranges.
 
 meta:
   dataset: "sklearn.diabetes"
-  target: "target"          # medida continua de progresión/enfermedad
-  standardization: "zscore" # indica que las X están normalizadas en origen
+  target: "target"          # continuous measure of disease progression
+  standardization: "zscore" # indicates that X are normalized in origin
 
 bounds_strategy:
-  # Estrategia por defecto para acotar variables: usar percentiles del propio dataset
+  # Default strategy to set feature bounds: use dataset percentiles
   from_data_percentiles:
     low: 1
     high: 99
 
 tolerances:
-  # Tolerancia para "completeness": error máximo aceptable en reconstrucción aditiva SHAP
-  completeness_abs_tau: 5.0         # unidades del target (ajusta si cambias escala)
-  # Ruido para pruebas de estabilidad (véase stability en metrics abajo)
-  stability_perturbation:
-    scheme: "relative"              # "absolute" o "relative"
-    epsilon: 0.02                   # 2% de la desviación estándar por feature
+  # τ — empirical threshold for Additivity (operationalized as Completeness)
+  additivity_abs_tau: 5.0           # units of the target (adjust if scale changes)
+  # ε — perturbation magnitude for Consistency (observed as Stability)
+  consistency_perturbation:
+    scheme: "relative"              # "absolute" or "relative"
+    epsilon: 0.02                   # 2% of feature std deviation
 
 immutables:
-  # Variables que NO pueden cambiar en contrafactuales
+  # Variables that CANNOT change in counterfactuals
   - "sex"
   - "age"
 
 actionable:
-  # Variables que sí pueden cambiar (p. ej. hábitos/medidas proxy)
-  # Mantener todas salvo las inmutables; se pueden restringir si se pide clínicamente.
+  # Variables that CAN change (e.g., lifestyle proxies)
+  # Keep all except immutables; further restrict if clinically needed.
   include:
     - "bmi"
     - "bp"
@@ -40,9 +41,9 @@ actionable:
     - "s6"
 
 costs:
-  # Coste relativo de cambiar cada feature (para DiCE/optimización)
-  # 1.0 = coste base; >1.0 más difícil; <1.0 más fácil
-  # Ajusta con criterio clínico/social (p. ej. cambiar BMI es costoso → 2.0)
+  # Relative cost of changing each feature (for DiCE/optimization)
+  # 1.0 = base cost; >1.0 harder to change; <1.0 easier
+  # Adjust with clinical or social rationale (e.g., changing BMI is costly → 2.0)
   default: 1.0
   per_feature:
     bmi: 2.0
@@ -55,16 +56,16 @@ costs:
     s6: 1.0
 
 profiles:
-  # Dos perfiles de uso para alinear técnica (clínico) y social (paciente)
+  # Two user profiles to align technical (clinician) and social (patient) trust
   clinician:
-    explanation_focus: ["fidelity", "completeness", "stability", "plausibility"]
+    explanation_focus: ["fidelity", "additivity", "consistency", "plausibility"]
     acceptance_criteria:
-      completeness_min_pct: 0.95
-      stability_cosine_median_min: 0.90
+      additivity_min_pct: 0.95
+      consistency_cosine_median_min: 0.90
       plausible_cf_min_pct: 0.80
   patient:
     explanation_focus: ["actionability", "clarity", "diversity"]
-    # Limita nº de cambios y magnitud para propuestas más "vivibles"
+    # Limit number and magnitude of suggested changes for realistic proposals
     max_changes: 3
-    max_step_relative: 0.5   # como fracción de la desviación estándar
+    max_step_relative: 0.5   # fraction of feature std deviation
     present_top_k_features: 3
