@@ -632,6 +632,27 @@ phi0.json
 Once uploaded, these SHAP outputs can be reused by later notebooks to compute trust metrics
 (Completeness, Fidelity, and Stability) without recomputing explanations.
 
+> [!NOTE]
+> **Conceptual Note — SHAP as Controlled Behavioral Characterization**
+>
+> In this framework, SHAP (SHapley Additive Explanations) is not used as an interpretability tool but as a **controlled behavioral characterization method**.  
+> Rather than “opening” the model or inspecting internal parameters, it **models the system’s response surface** under a set of fairness-preserving constraints.
+>
+> Each feature is treated as an **input variable in a cooperative system**, whose marginal influence on the output can be measured empirically.  
+> Through this formalism, SHAP provides a way to **observe and quantify the functional structure** of the model without altering its internal mechanisms.
+>
+> The method is grounded in *Shapley’s efficiency theorem* (1953), which ensures that the decomposition of the prediction into additive components is **unique, stable, and invariant** under symmetrical transformations.  
+> This transforms explainability into a form of **system-level accountability** — a measurable mapping between inputs and outputs that can be validated empirically.
+>
+> Within the *XAI-TrustFramework*, SHAP therefore acts as a **non-intrusive diagnostic instrument**, verifying whether the model’s predictions are:
+> - **Additive** — decomposable into consistent feature contributions (→ Completeness);  
+> - **Accurate locally** — reconstructable per instance (→ Fidelity);  
+> - **Consistent** — stable under perturbations (→ Stability).
+>
+> In this sense, SHAP does not *explain* the model; it **tests its structural reliability**.  
+> The focus shifts from interpretation to **empirical validation of trust properties** — aligning with the thesis premise that trust in AI systems emerges from verifiable behavioral evidence rather than introspection.
+>
+
 > [!ANALYSIS]
 > **Result Analysis — SHAP baseline validation (φ₀, φᵢ(x), and their epistemic meaning)**
 >
@@ -640,17 +661,17 @@ Once uploaded, these SHAP outputs can be reused by later notebooks to compute tr
 > This analysis does **not** attempt to “open” or introspect the internal mechanics of the model.  
 > Instead, it provides a **functional characterization** of the model’s observable behavior through *input–output contribution analysis*.
 >
-> SHAP (SHapley Additive Explanations) originates from **cooperative game theory** but can be interpreted here as a **structured system-decomposition method**.  
+> SHAP originates from **cooperative game theory** but can be interpreted here as a **structured system-decomposition method**.  
 > Each feature acts as an *input channel* whose marginal influence on the output can be quantified under a controlled framework of *coalitional perturbations*.
 >
 > The mathematical core is **Shapley’s efficiency theorem** (1953), which guarantees a *unique solution* for distributing a system’s output among its inputs, subject to three axioms:
 >
 >| **Shapley Axiom / Property** | **Engineering Interpretation** | **Trust Notion** (empirical) | **Metric / Formula** | **What it means in your model** | **File** | **Status in this pilot** |
 >|-------------------------------|--------------------------------|------------------------------|----------------------|----------------------------------|-----------|---------------------------|
->| **Efficiency / Additivity** | The total output equals the sum of individual input contributions. | **Completeness** | % of instances where \( | f(x) - [\phi_0 + \sum_i \phi_i(x)] | \leq \tau \) | Verifies that predictions can be reconstructed from the sum of all SHAP contributions plus the baseline. | — | ✅ Operationalized (Additivity → Completeness, τ) |
->| **Local Accuracy** | Each instance’s prediction equals the sum of its feature contributions. | **Fidelity** | \( R^2 \) or MAE between \( f(x) \) and \( \phi_0 + \sum_i \phi_i(x) \) | Evaluates how faithfully the additive reconstruction matches the model’s actual output. Ensures per-instance coherence. | `metrics_summary_val.csv` | ✅ Operationalized |
->| **Symmetry / Consistency** | Inputs with equivalent impact receive equal attributions. | **Stability** | Similarity of SHAP vectors under ε-perturbations (cosine, Spearman) | Tests whether small input perturbations preserve the relative ranking and direction of feature contributions. | `stability_analysis.csv` | ✅ Operationalized (Consistency → Stability, ε) |
->| **Dummy / Missingness** | Inputs that have no influence receive zero attribution. | — (not quantified) | — | Ensures that irrelevant or constant features have φ = 0. This can be checked analytically but not empirically in this pilot. | — | ⚪ Not included in this pilot |
+>| **Efficiency / Additivity** | The total output equals the sum of individual input contributions. | **Completeness** | % of instances where \( | f(x) - [\phi_0 + \sum_i \phi_i(x)] | \leq \tau \) | Verifies that predictions can be reconstructed from the sum of all SHAP contributions plus the baseline. | — | Operationalized (Additivity → Completeness, τ) |
+>| **Local Accuracy** | Each instance’s prediction equals the sum of its feature contributions. | **Fidelity** | \( R^2 \) or MAE between \( f(x) \) and \( \phi_0 + \sum_i \phi_i(x) \) | Evaluates how faithfully the additive reconstruction matches the model’s actual output. Ensures per-instance coherence. | `metrics_summary_val.csv` | Operationalized |
+>| **Symmetry / Consistency** | Inputs with equivalent impact receive equal attributions. | **Stability** | Similarity of SHAP vectors under ε-perturbations (cosine, Spearman) | Tests whether small input perturbations preserve the relative ranking and direction of feature contributions. | `stability_analysis.csv` | Operationalized (Consistency → Stability, ε) |
+>| **Dummy / Missingness** | Inputs that have no influence receive zero attribution. | — (not quantified) | — | Ensures that irrelevant or constant features have φ = 0. This can be checked analytically but not empirically in this pilot. | — |  Not included in this pilot |
 
 > These axioms make SHAP a **model-agnostic decomposition operator**:  
 > it defines how to *represent and measure* contribution dynamics without accessing internal parameters.  
