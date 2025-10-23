@@ -576,3 +576,59 @@ Ensure the background data (data=X_train) matches your training distribution to 
 > `priors_clinical.yaml` → `tolerances.additivity_abs_tau`.  
 > This validation is first performed on the **validation** split and later replicated on the **test** split.
 
+### Step 5.2 — Save SHAP results for traceability
+
+After computing the SHAP attributions, store both the baseline and the attribution matrix under `/results/shap_values/` for reproducibility.
+
+```python
+import pandas as pd
+import json
+
+results_dir = PROJECT / "results" / "shap_values"
+results_dir.mkdir(parents=True, exist_ok=True)
+
+# Save SHAP matrix (n_instances × n_features)
+shap_df = pd.DataFrame(shap_matrix_val, columns=X_val.columns)
+shap_df.to_csv(results_dir / "shap_matrix_val.csv", index=False)
+
+# Save baseline expected value
+with open(results_dir / "phi0.json", "w") as f:
+    json.dump({"phi0": float(phi0)}, f, indent=2)
+
+print("✅ SHAP values saved to:", results_dir)
+```
+Files generated:
+
+results/shap_values/shap_matrix_val.csv
+results/shap_values/phi0.json
+
+
+> [!NOTE]
+> Why save these files?
+> Persisting SHAP outputs allows you to:
+>
+> Recompute trust metrics (Completeness, Fidelity) without re-running SHAP.
+>
+> Reuse the same attributions in stability or fairness analyses.
+>
+> Ensure the experiment is fully FAIR — Findable, Accessible, Interoperable, Reproducible.
+>
+
+### Step 5.3 — Upload SHAP results to GitHub
+
+After running the SHAP explainer, two files are generated locally under:
+01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/results/shap_values/
+
+#### Files to include
+shap_matrix_val.csv
+phi0.json
+
+#### Steps
+1. In Colab, open the left sidebar → **results/shap_values/**.  
+2. Download both files to your computer.  
+3. In your local GitHub repository, move them to:
+01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/results/shap_values/
+
+Once uploaded, these SHAP outputs can be reused by later notebooks to compute trust metrics
+(Completeness, Fidelity, and Stability) without recomputing explanations.
+
