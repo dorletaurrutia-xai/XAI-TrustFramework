@@ -177,6 +177,9 @@ If priors_clinical.yaml is missing, defaults will be used but must later be repl
 >| **Trust Notion** | Completeness | empirical interpretation of Additivity | — |
 >| **Metric** | % of instances where |f(x) − Σφᵢ(x)| ≤ τ | operationalizes Completeness |
 >| **Parameter** | τ (tau) | acceptable deviation for Additivity | stored in `priors_clinical.yaml` |
+>
+>| Hierarchy | Example (TreeSHAP) | Relation | Parameter |
+>|------------|--------------------|-----------|------------|
 >| **Method-Guaranteed Property** | Consistency | theoretical guarantee | — |
 >| **Trust Notion** | Stability | empirical interpretation of Consistency | — |
 >| **Metric** | Cosine/Spearman similarity under ε-noise | operationalizes Stability |
