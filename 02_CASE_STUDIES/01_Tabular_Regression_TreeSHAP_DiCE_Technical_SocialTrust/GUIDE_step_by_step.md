@@ -122,6 +122,19 @@ try:
 except FileNotFoundError:
     TAU, EPS = 1e-6, 0.01  # default values if YAML not yet present
 ```
+#### Important!
+Before loading configuration values, download the reference configuration files from the GitHub repository.
+This guarantees that the notebook runs with the same parameters used in the public experiment and ensures full reproducibility.
+
+Files downloaded:
+
+seeds.json → defines random seeds for data and model reproducibility
+
+priors_clinical.yaml → defines clinical priors, tolerances (τ), and perturbation noise (ε)
+
+dice_constraints.yaml → defines immutable variables, feature bounds, and counterfactual constraints for DiCE
+
+If the files already exist locally, this step overwrites them with the latest repository version.
 
 #### Explanation:
 This step loads the random seeds and tolerance parameters used across the pilot:
@@ -149,5 +162,48 @@ Verify that both files exist under configs/ and contain the correct parameters:
 configs/seeds.json
 configs/priors_clinical.yaml
 
-
 If priors_clinical.yaml is missing, defaults will be used but must later be replaced with validated values for reproducible reporting.
+
+### Step 3.1 — Load and save the clinical dataset
+
+```python
+from sklearn.datasets import load_diabetes
+import pandas as pd
+
+# Use the public 'diabetes' dataset from scikit-learn for reproducibility
+data = load_diabetes(as_frame=True)
+df = data.frame.copy()
+df["target"] = data.target  # make target column explicit for clarity
+
+# Save a raw copy for experiment traceability
+raw_path = PROJECT / "data/raw/diabetes.csv"
+df.to_csv(raw_path, index=False)
+
+print("Dataset saved at:", raw_path)
+df.head()
+```
+#### Explanation:
+This step loads a publicly available regression dataset (sklearn.diabetes) used widely in clinical ML demonstrations.
+It ensures that all experiments are fully reproducible without requiring private data.
+
+#### Workflow:
+
+Load the dataset as a pandas DataFrame (as_frame=True).
+
+Explicitly add the target column (regression label).
+
+Save a copy to /data/raw/diabetes.csv for traceability and reproducibility.
+
+#### Expected output (example):
+
+Dataset saved at: /content/.../data/raw/diabetes.csv
+
+
+#### Checkpoint:
+Verify that the dataset file exists at:
+
+data/raw/diabetes.csv
+
+and that the first rows display expected columns such as:
+
+['age', 'sex', 'bmi', 'bp', 's1', 's2', 's3', 's4', 's5', 's6', 'target']
