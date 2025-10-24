@@ -1148,3 +1148,4 @@ Stability (cosine) mean±std: 0.9812 ± 0.0074
 > Through this lens, the individual instance serves as a **microcosm of model behavior**,  
 > allowing trust to be empirically validated in a controlled, reproducible setting.
 
+
