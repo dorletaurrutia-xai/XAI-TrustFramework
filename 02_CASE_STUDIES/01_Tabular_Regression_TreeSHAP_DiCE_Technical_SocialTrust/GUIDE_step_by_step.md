@@ -612,7 +612,7 @@ Ensure the background data (data=X_train) matches your training distribution to 
 > This validation is first performed on the **validation** split and later replicated on the **test** split.
 
 
-[!NOTE]
+> [!NOTE]
 > **Conceptual link — Local Accuracy (Additivity → Fidelity)**
 >
 > TreeSHAP satisfies **Local Accuracy** (a consequence of Additivity/Efficiency) by design.  
