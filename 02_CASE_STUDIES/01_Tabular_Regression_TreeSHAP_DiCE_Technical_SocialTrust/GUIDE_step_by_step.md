@@ -496,63 +496,78 @@ print("SHAP matrix shape:", shap_matrix_val.shape)
 print("Expected value (phi0):", float(phi0))
 ```
 > [!NOTE]
-> **Conceptual Note — SHAP as Controlled Behavioral Characterization**
->
-> In this framework, SHAP (SHapley Additive Explanations) is not used as an interpretability tool but as a **controlled behavioral characterization method**.  
-> Rather than “opening” the model or inspecting internal parameters, it **models the system’s response surface** under a set of fairness-preserving constraints.
->
-> Each feature is treated as an **input variable in a cooperative system**, whose marginal influence on the output can be measured empirically.  
-> Through this formalism, SHAP provides a way to **observe and quantify the functional structure** of the model without altering its internal mechanisms.
->
-> The method is grounded in *Shapley’s efficiency theorem* (1953), which ensures that the decomposition of the prediction into additive components is **unique, stable, and invariant** under symmetrical transformations.  
-> This transforms explainability into a form of **system-level accountability** — a measurable mapping between inputs and outputs that can be validated empirically.
->
-> Within the *XAI-TrustFramework*, SHAP therefore acts as a **non-intrusive diagnostic instrument**, verifying whether the model’s predictions are:
-> - **Additive** — decomposable into consistent feature contributions (→ Completeness);  
-> - **Accurate locally** — reconstructable per instance (→ Fidelity);  
-> - **Consistent** — stable under perturbations (→ Stability).
->
-> In this sense, SHAP does not *explain* the model; it **tests its structural reliability**.  
-> The focus shifts from interpretation to **empirical validation of trust properties** — aligning with the thesis premise that trust in AI systems emerges from verifiable behavioral evidence rather than introspection.
->
+> ## Theoretical Foundation — TreeSHAP as Controlled System Decomposition
+> 
+> This analysis does **not** attempt to “open” the model or inspect its internals.  
+> Instead, it provides a **functional characterization** of the model’s behavior through *input–output decomposition*.
+> 
+> TreeSHAP originates from **cooperative game theory**, formalized by Shapley’s *efficiency theorem* (1953).  
+> Each feature acts as an **input channel** whose marginal influence on the output can be quantified under a controlled, fairness-preserving framework of *coalitional perturbations*.
+> 
+> In engineering terms, SHAP becomes a **system decomposition operator**:  
+> it measures how the model distributes responsibility among inputs — providing **behavioral evidence** of structural reliability without introspection.
+> 
+> ---
+> 
+> ### Shapley Axioms and Empirical Trust Validation
+> 
+> | **Shapley Axiom / Method-Guaranteed Property** | **Engineering Interpretation** | **Empirical Trust Notion** | **Metric / Formula** | **Parameter** | **Pilot Status** |
+> |-----------------------------------------------|--------------------------------|-----------------------------|----------------------|----------------|------------------|
+> | **Additivity / Efficiency** | The total output equals the sum of individual feature contributions. | **Completeness** | % of instances where \\( \|f(x) − [\phi_0 + \sum_i \phi_i(x)]\| ≤ τ\\) | τ (`tolerances.additivity_abs_tau`) | ✅ Operationalized |
+> | **Local Accuracy** | Each instance’s prediction equals its additive reconstruction. | **Fidelity** | MAE or \\(R^2\\) between \\(f(x)\\) and \\(\phi_0 + \sum_i \phi_i(x)\\) | — | ✅ Operationalized |
+> | **Consistency / Symmetry** | Inputs with equivalent impact receive equal attributions; small perturbations yield similar explanations. | **Stability** | Cosine/Spearman similarity between SHAP vectors under ε-perturbations | ε (`tolerances.consistency_perturbation.epsilon`) | ✅ Operationalized |
+> | **Missingness / Dummy** | Features with no effect receive zero attribution. | — | — | — | ⚪ Not tested in this pilot |
+> 
+> ---
+> 
+> ### Conceptual Summary — Controlled Behavioral Characterization
+> 
+> Within the *XAI-TrustFramework*, SHAP is **not** treated as a human-interpretability tool  
+> but as a **non-intrusive diagnostic instrument** that validates the model’s internal coherence.
+> 
+> - **Additivity → Completeness:** verifies that outputs can be reconstructed from feature contributions.  
+> - **Local Accuracy → Fidelity:** measures how faithfully those reconstructions reproduce predictions.  
+> - **Consistency → Stability:** tests robustness of explanations under small perturbations.  
+> 
+> Together, these properties operationalize the **Technical Dimension of Trust**:  
+> they ensure that the model behaves as a **stable, decomposable, and reproducible system**,  
+> providing quantitative evidence of reliability — *without opening any black box*.
+
+
+
 > [!NOTE]
 > **Conceptual Note — Why TreeSHAP here? (Data → Task → Method → Trust Link)**
 >
 > **Data Type**  
-> The dataset used (`sklearn.diabetes`) is *tabular*, with continuous numeric variables that are moderately correlated (e.g., BMI, blood pressure, glucose indicators).  
-> Tabular data require **local additive explanations** that can attribute prediction outcomes to individual input features in a consistent, quantitative way.
+> The dataset used (`sklearn.diabetes`) is *tabular*, composed of continuous clinical and biochemical variables  
+> (e.g., BMI, blood pressure, serum indicators) with moderate inter-feature correlations.  
+> Such data demand **local additive explanations** that can assign precise numerical contributions  
+> to each input variable without assuming independence among them.
 >
 > **Task Type**  
-> The task is **regression** — predicting a continuous clinical progression score.  
-> For regression models, we need explanations that are:
-> - **additive** (sum of contributions equals prediction),
-> - **signed** (each feature increases or decreases the prediction),
-> - **quantitatively consistent** across similar inputs.
+> The task is **regression** — predicting a continuous disease progression score.  
+> For regression, explanations must be:
+> - **Additive**, so that the total prediction equals the sum of contributions plus a baseline.  
+> - **Signed**, showing whether each feature increases or decreases the predicted outcome.  
+> - **Quantitatively consistent**, producing comparable attributions across similar patients.
 >
-> **XAI Method: TreeSHAP**  
-> TreeSHAP (a variant of SHAP specialized for tree-based models) provides these guarantees **by design**.  
-> It decomposes each prediction \( f(x) \) into:
+> **XAI Method — TreeSHAP**  
+> TreeSHAP provides an *exact, model-consistent solution* for tree-based regressors (such as RandomForest).  
+> It satisfies three theoretical guarantees — **Additivity**, **Consistency**, and **Missingness** —  
+> making it particularly suited for quantifying *how much* each input feature contributes to a numeric output.  
+> Unlike perturbation-based methods (e.g., LIME), TreeSHAP leverages the internal tree structure to compute  
+> deterministic attributions without random sampling noise.
 >
-> $$
-> f(x) = \phi_0 + \sum_i \phi_i(x)
-> $$
+> **Trust Link — Technical Dimension**  
+> Within the *XAI-TrustFramework*, TreeSHAP operationalizes the **Technical Dimension of Trust**:  
+> it validates whether the model behaves as a *reliable, decomposable system* by empirically testing:
+> - **Additivity → Completeness** — predictions can be reconstructed additively (τ threshold).  
+> - **Local Accuracy → Fidelity** — reconstructed predictions align with the model’s outputs (MAE/R²).  
+> - **Consistency → Stability** — explanations remain stable under ε-perturbations.  
 >
-> where:
-> - \( \phi_0 \) is the model’s expected output (baseline prediction),
-> - \( \phi_i(x) \) is the contribution of each feature \( i \).
->
-> **Method-Guaranteed Properties (operationalized in this pilot)**  
-> TreeSHAP satisfies three theoretical guarantees — *Additivity*, *Consistency*, and *Missingness* —  
-> but in this pilot, only the first two are **empirically validated** through Technical Trust metrics:
->
-> | **Method-Guaranteed Property** | **Trust Notion (empirical)** | **Trust Metric** | **Parameter** |
->|--------------------------------|-------------------------------|------------------|----------------|
->| **Additivity** | **Completeness** | % of instances where `| f(x) − (φ₀ + Σφᵢ(x)) | ≤ τ` | τ (`additivity_abs_tau`) |
->| **Local Accuracy (Additivity)** | **Fidelity** | `R²` or `MAE` between `f(x)` and reconstruction | — |
->| **Consistency** | **Stability** | Similarity of SHAP vectors under ε-perturbations | ε (`consistency_perturbation.epsilon`) |
->
-> **Missingness** (features with no influence have φ=0) is acknowledged as a theoretical property of TreeSHAP  
-> but is **not empirically tested** in this pilot — it remains a qualitative check for feature sparsity.
+> This data–task–method alignment ensures that TreeSHAP is not used for “interpretation,”  
+> but as a **functional verification mechanism**, establishing *quantitative trust evidence*  
+> grounded in the model’s observable, reproducible behavior.
 >
 > **Why Technical Dimension only?**  
 > TreeSHAP explains *how the model behaves*, not *how a person can act upon it*.  
@@ -603,9 +618,9 @@ Ensure the background data (data=X_train) matches your training distribution to 
 > TreeSHAP satisfies **Local Accuracy** (a consequence of Additivity/Efficiency) by design.  
 > Empirically, we test its observable notion — **Fidelity** — by checking how well the additive reconstruction matches the model:
 >
-> \[
+> $$
 > f(x) \approx \phi_0 + \sum_i \phi_i(x)
-> \]
+> $$
 >
 > We quantify Fidelity on the **validation** split (and later on **test**) using error/agreement metrics such as **MAE** and **\(R^2\)** between \( f(x) \) and \( \phi_0 + \sum_i \phi_i(x) \).  
 > Lower MAE and higher \(R^2\) indicate that the explanations **faithfully reproduce** the model’s behavior.
@@ -617,10 +632,10 @@ Ensure the background data (data=X_train) matches your training distribution to 
 > Shapley’s **Consistency/Symmetry** implies that explanations should vary **smoothly and coherently** under small input changes.  
 > Empirically, we test its observable notion — **Stability** — by perturbing inputs with a small **ε** and comparing original vs. perturbed SHAP vectors:
 >
-> \[
+> $$
 > \text{Stability}(x;\,\varepsilon) \;=\; \cos\big(\,\boldsymbol{\phi}(x),\, \boldsymbol{\phi}(x+\delta)\,\big), 
 > \quad \delta \sim \mathcal{N}(0,\varepsilon^2 I)
-> \]
+> $$
 >
 > We report the **mean (↑)** and **std (↓)** of cosine (or Spearman) similarity across instances.  
 > The perturbation magnitude ε is configured in  
