@@ -1129,4 +1129,22 @@ Stability (cosine) mean±std: 0.9812 ± 0.0074
 > ensuring that the model’s suggested changes remain **actionable, feasible, and explainable**  
 > under realistic domain constraints.
 
+> [!NOTE]  
+> **Conceptual Note — Local Analysis as Functional Trust Probe**  
+>
+> The *XAI-TrustFramework* distinguishes between **global structural validation** and **local functional characterization**.  
+> While global analyses (e.g., *TreeSHAP*) assess whether the model behaves as a *stable, decomposable system*,  
+> local analyses (e.g., *DiCE*) observe how the system responds to controlled perturbations around a specific point in the input space.  
+>
+> In this pilot, selecting a **single patient (or instance)** does **not** aim at personal interpretation or clinical inference.  
+> Instead, it provides a **functional probe** — a fixed, observable context from which to examine whether the model:  
+>
+> - Reacts smoothly to small, feasible input variations (*robustness*),  
+> - Offers multiple realistic paths toward desirable outcomes (*diversity*), and  
+> - Respects domain or ethical constraints during those transitions (*plausibility*).  
+>
+> This local behavior represents the **Social Dimension of Trust** within the framework —  
+> translating abstract model sensitivity into measurable notions of *actionability*, *diversity*, and *plausibility*.  
+> Through this lens, the individual instance serves as a **microcosm of model behavior**,  
+> allowing trust to be empirically validated in a controlled, reproducible setting.
 
