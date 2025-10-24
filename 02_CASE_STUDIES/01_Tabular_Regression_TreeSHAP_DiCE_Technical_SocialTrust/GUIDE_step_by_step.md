@@ -585,6 +585,33 @@ print("Expected value (phi0):", float(phi0))
 > Dimension → Technical
 > ```
 
+> [!NOTE]
+> **How SHAP’s axioms map to empirical trust validation in the XAI-TrustFramework**
+>
+> The table below shows how the formal axioms of the Shapley value —originating in cooperative game theory—  
+> are **operationalized as empirical trust notions** within the *XAI-TrustFramework*.
+>
+> Each theoretical property defines a *guaranteed behavior* of the explanation model,  
+> while its corresponding trust notion expresses that property as a **measurable hypothesis**  
+> about the system’s observable outputs.
+>
+> - **Additivity (Efficiency)** → becomes **Completeness**, verifying whether each prediction can be reconstructed as  
+>   the sum of individual feature contributions within a defined tolerance (τ).  
+> - **Local Accuracy** → becomes **Fidelity**, assessing how closely the additive reconstruction matches the model’s actual prediction.  
+> - **Consistency (Symmetry)** → becomes **Stability**, quantifying the robustness of explanations under ε-perturbations.  
+> - **Dummy (Missingness)** → remains theoretically present, ensuring that non-influential features receive φ = 0,  
+>   though it is not empirically tested in this pilot.
+>
+> This alignment converts **normative axioms into testable criteria**.  
+> What was once a theoretical guarantee of fairness and coherence becomes a **set of trust metrics**  
+> that can be validated empirically.  
+>
+> The resulting structure allows each trust dimension —technical, social, organizational, and institutional—  
+> to be grounded in reproducible evidence rather than abstract claims.  
+> In other words, the *XAI-TrustFramework* extends Shapley’s fairness principles  
+> into a **methodology for assessing trustworthy behavior in AI systems**.
+> 
+
 #### Outputs captured:
 
 expected_value (φ₀) — baseline model output with no feature contributions.
@@ -700,104 +727,6 @@ phi0.json
 Once uploaded, these SHAP outputs can be reused by later notebooks to compute trust metrics
 (Completeness, Fidelity, and Stability) without recomputing explanations.
 
-
-
-> [!TIP]
-> **Result Analysis — SHAP baseline validation (φ₀, φᵢ(x), and their epistemic meaning)**
->
-> **Theoretical foundation — from cooperative system decomposition to explainability**
->
-> This analysis does **not** attempt to “open” or introspect the internal mechanics of the model.  
-> Instead, it provides a **functional characterization** of the model’s observable behavior through *input–output contribution analysis*.
->
-> SHAP originates from **cooperative game theory** but can be interpreted here as a **structured system-decomposition method**.  
-> Each feature acts as an *input channel* whose marginal influence on the output can be quantified under a controlled framework of *coalitional perturbations*.
->
-> The mathematical core is **Shapley’s efficiency theorem** (1953), which guarantees a *unique solution* for distributing a system’s output among its inputs, subject to three axioms:
->
->| **Shapley Axiom / Property** | **Engineering Interpretation** | **Trust Notion (empirical)** | **Metric / Formula** | **What it means in your model** | **File** | **Status in this pilot** |
->|-------------------------------|--------------------------------|------------------------------|----------------------|----------------------------------|-----------|---------------------------|
->| **Efficiency / Additivity** | The total output equals the sum of individual input contributions. | **Completeness** | % of instances where&nbsp;\\( \| f(x) - [\phi_0 + \sum_i \phi_i(x)] \| \leq \tau \\) >| Verifies that predictions can be **reconstructed** as the sum of all SHAP contributions plus the baseline. | — | ✅ Operationalized *(Additivity → Completeness, τ)* |
->| **Local Accuracy** | Each instance’s prediction equals the sum of its feature contributions. | **Fidelity** | \\( R^2 \\)&nbsp;or&nbsp;MAE&nbsp;between&nbsp;\\( f(x) \\)&nbsp;and&nbsp;\\( \phi_0 + \sum_i \phi_i(x) \\) | Evaluates how faithfully the additive reconstruction matches the model’s actual output. Ensures per-instance coherence. | `metrics_summary_val.csv` | ✅ Operationalized |
->| **Symmetry / Consistency** | Inputs with equivalent impact receive equal attributions. | **Stability** | Similarity of SHAP vectors under&nbsp;ε-perturbations&nbsp;(cosine,&nbsp;Spearman) | Tests whether small input perturbations preserve the relative ranking and direction of feature contributions. | `stability_analysis.csv` | ✅ Operationalized *(Consistency → Stability, ε)* |
->| **Dummy / Missingness** | Inputs that have no influence receive zero attribution. | — *(not quantified)* | — | Ensures that irrelevant or constant features have&nbsp;\\( \phi = 0 \\). This can be checked analytically but not empirically in this pilot. | — | ⚪ Not included in this pilot |
->
->
-> These axioms make SHAP a **model-agnostic decomposition operator**:  
-> it defines how to *represent and measure* contribution dynamics without accessing internal parameters.  
-> What results is not a “peek inside the box,” but a **measurable mapping between features and outputs**, preserving the system’s functional integrity.
->
->> [!NOTE]
->> **How SHAP’s axioms map to empirical trust validation in the XAI-TrustFramework**
->>
->> The table above shows how the formal axioms of the Shapley value —originating in cooperative game theory—  
->> are **operationalized as empirical trust notions** within the *XAI-TrustFramework*.
->>
->> Each theoretical property defines a *guaranteed behavior* of the explanation model, while its corresponding trust notion  
->> expresses that property as a **measurable hypothesis** about the system’s observable outputs.
->>
->> - **Additivity (Efficiency)** → becomes **Completeness**, verifying whether each prediction can be reconstructed as  
-> >  the sum of individual feature contributions within a defined tolerance (τ).  
->> - **Local Accuracy** → becomes **Fidelity**, assessing how closely the additive reconstruction matches the model’s actual prediction.  
->> - **Consistency (Symmetry)** → becomes **Stability**, quantifying the robustness of explanations under ε-perturbations.  
->> - **Dummy (Missingness)** → remains theoretically present, ensuring that non-influential features receive φ = 0,  
->>   though it is not empirically tested in this pilot.
->>
->
-> This alignment converts **normative axioms into testable criteria**.  
-> What was once a theoretical guarantee of fairness and coherence becomes a **set of trust metrics** that can be validated empirically.  
-> The resulting structure allows each trust dimension —technical, social, organizational, and institutional—  
-> to be grounded in reproducible evidence rather than abstract claims.
->
-> In other words, the *XAI-TrustFramework* extends Shapley’s fairness principles from cooperative game theory  
-> into a **methodology for assessing trustworthy behavior in AI systems**.
->
-> **Key point:**  
-> - SHAP values \( \phi_i(x) \) are *empirical observables* of the model’s response surface.  
-> - The decomposition \( f(x) = \phi_0 + Σφ_i(x) \) is **a validation statement**, not a visual explanation.  
-> - Additivity and consistency allow us to verify that the model behaves as a **stable, decomposable system**, rather than as an opaque artifact.
->
-> In this sense, SHAP operationalizes the **principle of structural accountability**:  
-> it converts the black-box system into a *traceable function space*, where every prediction can be validated by reconstruction.
->
->
-> **Computational formalization — TreeSHAP and its expected value (φ₀)**  
-> TreeSHAP implements this logic efficiently for tree-based models like `RandomForestRegressor`.  
-> It computes, for each instance:
-> $$
-> f(x) = \phi_0 + \sum_i \phi_i(x)
-> $$
-> where:
-> - \( \phi_0 \) is the **expected prediction** (baseline when no feature contributes).  
-> - \( \phi_i(x) \) is the **marginal contribution** of feature *i* across all possible coalitions.
->
-> The resulting **SHAP matrix (66 × 10)** captures these local attributions across all validation samples.  
-> The computed baseline **φ₀ ≈ 153.02** represents the model’s expected output, aligning with the average clinical progression score predicted by the model over the training distribution.
->
-> **Methodological integration — empirical trust in the technical dimension**  
-> In the *XAI-TrustFramework*, this step operationalizes the **Technical Dimension of Trust**, linking formal guarantees with measurable evidence:
->
->| **Method-Guaranteed Property** (theoretical) | **Trust Notion** (empirical) | **Metric / Formula** | **What it means in your model** | **File** |
->|----------------------------------------------|-------------------------------|----------------------|----------------------------------|----------|
->| **Additivity (Efficiency)** | **Completeness** | % of instances where&nbsp;\\( \| f(x) - [\phi_0 + \sum_i \phi_i(x)] \| \leq \tau \\) | Verifies that each prediction can be **reconstructed** as the sum of all SHAP contributions plus the baseline within a tolerance&nbsp;τ. | — |
->| **Local Accuracy** | **Fidelity** | \\( R^2 \\)&nbsp;or&nbsp;MAE&nbsp;between&nbsp;\\( f(x) \\)&nbsp;and&nbsp;\\( \phi_0 + \sum_i \phi_i(x) \\) | Tests how **faithfully the additive reconstruction matches** the model’s actual prediction. Measures per-instance empirical coherence. | `metrics_summary_val.csv` |
->| **Consistency (Symmetry)** | **Stability** | Similarity of SHAP vectors under&nbsp;ε-perturbations&nbsp;(cosine,&nbsp;Spearman) | Checks whether **small input perturbations** produce **proportionally stable explanations**, ensuring invariance and reliability of attributions. | `stability_analysis.csv` |
->
->
->
-> By generating SHAP values, we empirically access the *internal logic* of the model, allowing the theoretical properties of fairness and consistency to be **quantified** as reproducible data.  
-> This makes SHAP a **bridge between cooperative fairness theory and technical trust measurement**.
->
-> **Interpretation of results (φ₀ ≈ 153.02)**  
-> - φ₀ is the model’s **expected prediction baseline** — the outcome when no specific feature shifts the result.  
-> - Each φᵢ(x) describes **how much feature *i* pushes this instance’s prediction** above or below φ₀.  
-> - In clinical terms, positive contributions (e.g., BMI, s5, bp) indicate higher predicted progression; negative ones (e.g., s3, age) lower progression.
->
-> **Relevance to the thesis methodology**  
-> - This analysis demonstrates how a **normative fairness principle** (from cooperative game theory) can be **empirically verified** in applied AI.  
-> - It shows that *trustworthiness* is not abstract — it is **operationalized** by testing whether the model obeys fairness axioms in practice.  
-> - It establishes the **first empirical layer** of the thesis methodology: from *theoretical guarantees* → *operational notions* → *measurable metrics*.
-
 ### Step 5.4 — Save and upload SHAP explanation sample
 
 After combining the validation data with SHAP contributions,  
@@ -823,36 +752,54 @@ Once downloaded, move the file into your local repository:
 01_Tabular_Regression_TreeSHAP_DiCE_Technical_SocialTrust/results/shap_explanations_sample.csv
 
 > [!TIP]
-> **Result Analysis — SHAP contributions (φᵢ)**
+> **Result Analysis — SHAP Decomposition and Empirical Validation**
 >
-> The file `results/shap_explanations_sample.csv` combines each validation instance  
-> with its corresponding SHAP contribution values (φᵢ).  
-> These represent the marginal effect of each feature on the model’s prediction.
+> **Core idea:**  
+> SHAP values \( \phi_i(x) \) are **empirical observables** of the model’s response surface.  
+> The decomposition
+> \[
+> f(x) = \phi_0 + \sum_i \phi_i(x)
+> \]
+> is not a visualization exercise but a **validation statement**:  
+> it confirms whether the model behaves as a **stable, decomposable system** rather than an opaque artifact.
 >
-> **Interpretation logic:**
-> - Positive φᵢ(x) → the feature **increases** the prediction above the baseline (φ₀ ≈ 153.02).  
-> - Negative φᵢ(x) → the feature **decreases** the prediction below the baseline.  
-> - The absolute magnitude of φᵢ(x) → indicates the **strength of that influence**.
+> **Computational meaning (TreeSHAP implementation)**  
+> - \( \phi_0 \): model’s *expected prediction baseline* — the outcome when no specific feature shifts the result.  
+>   In this pilot, **φ₀ ≈ 153.02**, aligned with the mean predicted progression score.  
+> - \( \phi_i(x) \): *marginal contribution* of feature *i* across all possible feature coalitions.  
+>   Positive values increase the prediction above φ₀; negative values decrease it.
 >
-> **Empirical observation (sample data):**
+> The resulting **SHAP matrix (66 × 10)** captures local attributions across all validation instances,  
+> stored in `results/shap_explanations_sample.csv`.  
+> Each φᵢ(x) quantifies the directional and quantitative influence of its feature.
+>
+> **Empirical observations (sample summary)**  
 >
 > | Variable | Mean φᵢ(x) | Interpretation |
 > |-----------|-------------|----------------|
-> | **s5** | +21.6 | Increases the predicted progression. |
+> | **s5** | +21.6 | Increases predicted progression. |
 > | **bmi** | +13.5 | Strong positive contributor (higher BMI → higher risk). |
 > | **bp** | +4.8 | Moderate positive contribution. |
-> | **s3** | -8.5 | Reduces the predicted progression. |
+> | **s3** | -8.5 | Reduces predicted progression. |
 > | **age** | -2.9 | Slight negative influence. |
 >
-> These contributions confirm that the model behaves coherently with expected clinical logic:  
-> markers like **s5** (serum triglycerides) and **BMI** raise predicted progression,  
-> while **s3** and **age** lower it — reflecting physiologically plausible patterns.
+> These patterns align with clinical logic: higher **BMI** and **serum triglycerides (s5)** elevate risk,  
+> while **age** and **s3** act as protective or inverse correlates.  
+> This supports the model’s internal coherence and **plausibility of its reasoning**.
 >
-> **Relation to the thesis methodology:**
-> - This step operationalizes *Fidelity* and *Completeness* under the Technical Trust Dimension.  
-> - φ₀ anchors the additive decomposition, while φᵢ(x) provides measurable evidence of model reliability.  
-> - By documenting φᵢ(x) contributions, we make the model’s internal reasoning **empirically traceable** —  
->   turning *trustworthiness* into observable, reproducible data.
+> **Integration with the XAI-TrustFramework**
+>
+> | **Theoretical Property** | **Empirical Trust Notion** | **Metric / Evidence** | **Meaning in this model** |
+> |---------------------------|-----------------------------|------------------------|----------------------------|
+> | **Additivity (Efficiency)** | **Completeness** | % of instances where \\( \| f(x) - [\phi_0 + \sum_i \phi_i(x)] \| \le τ \\) | Validates additive reconstruction (τ = tolerance). |
+> | **Local Accuracy** | **Fidelity** | MAE or R² between model output and reconstruction | Quantifies per-instance coherence. |
+> | **Consistency (Symmetry)** | **Stability** | Cosine/Spearman similarity under ε-perturbations | Tests robustness of explanations. |
+>
+> **Relevance to the thesis methodology**  
+> - Demonstrates how *normative fairness principles* (from Shapley’s theory) become **empirical trust evidence**.  
+> - Establishes the **technical trust layer** of the framework: measurable coherence, stability, and completeness.  
+> - Shows that *trustworthiness* is not abstract — it can be **quantified** through reproducible system behavior.
+
 
 ## 6) SHAP Metrics
 ### Step 6.1 — Compute Completeness (Additivity within tolerance)
