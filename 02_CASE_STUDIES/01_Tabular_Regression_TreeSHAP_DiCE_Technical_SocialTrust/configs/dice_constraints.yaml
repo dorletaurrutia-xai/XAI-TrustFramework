@@ -1,49 +1,65 @@
 # Constraints & preferences for DiCE counterfactual generation
-
 backend: "sklearn"
+
 outcome:
   name: "target"
-  # Cómo definimos el "objetivo deseado" para CFs:
-  desired:
-    type: "range"          # "range" o "target_value"
-    # Por defecto, usa rango alrededor de la mediana de y_val (se puede sobrescribir en notebook)
-    range_margin: 10.0     # ± margen en unidades del target
+  # Estructura compatible con el notebook:
+  type: "range"           # "range" | (si algún día quieres) "target_value"
+  tolerance: 10.0         # ± margen en unidades del target (antes: desired.range_margin)
 
 search:
   total_cfs_per_instance: 3
-  features_to_vary: "actionable"   # usa lista de priors_clinical.yaml
+  features_to_vary: "actionable"   # se usará feasibility.actionable_features
   diversity_weight: 0.5            # trade-off proximidad vs diversidad
   proximity_metric: "l1"           # "l1" o "l2"
   stop_when_k_found: true
 
 feasibility:
-  # Origen de límites: usa percentiles definidos en priors (recomendado para sklearn.diabetes)
+  # Origen de límites: si quieres derivarlos de priors, mantenlo como metadato
   bounds_source: "priors"
   immutable_features:
     - "sex"
     - "age"
-  per_feature_bounds:
-    # Opcional: si se quiere sobreescribir límites por feature (en z-score)
-    # bmi: {min: -3.0, max: 3.0}
-    # bp:  {min: -3.0, max: 3.0}
-    {}
-  per_feature_costs:
-    # Si no se especifica, usa costs.default / costs.per_feature de priors
-    {}
+  # NUEVO: lista explícita para evitar KeyError
+  actionable_features:
+    - "bmi"
+    - "bp"
+    - "s1"
+    - "s2"
+    - "s3"
+    - "s4"
+    - "s5"
+    - "s6"
 
-plausibility_checks:
-  # Validaciones adicionales (se evalúan después de generar CFs)
-  enforce_monotonic_target_improvement: true  # CF debe acercar el target al rango/valor deseado
+  # NUEVO: clave que espera el notebook (low/high). Ajusta con p5–p95 reales si quieres.
+  feature_bounds:
+    age: {low: -0.10, high: 0.15}
+    sex: {low: -0.05, high: 0.05}
+    bmi: {low: -0.10, high: 0.20}
+    bp:  {low: -0.15, high: 0.20}
+    s1:  {low: -0.20, high: 0.25}
+    s2:  {low: -0.20, high: 0.30}
+    s3:  {low: -0.30, high: 0.20}
+    s4:  {low: -0.20, high: 0.25}
+    s5:  {low: -0.20, high: 0.30}
+    s6:  {low: -0.20, high: 0.25}
+
+  # Opcional (metadatos): si quieres mantener tus costes/overrides originales:
+  per_feature_bounds: {}
+  per_feature_costs: {}
+
+plausibility:
+  # (antes: plausibility_checks)
+  enforce_monotonic_target_improvement: true
   reject_if_outside_bounds: true
-  min_diversity_distance: 0.2  # distancia mínima media entre CFs (en métrica elegida)
+  min_diversity_distance: 0.2
 
 profiles:
-  # Restricciones específicas por perfil de uso (opcional)
   clinician:
-    max_changes: 5
+    max_features_to_change: 5
+    relative_step_cap: 1.0
     allow_all_actionable: true
   patient:
-    max_changes: 3
+    max_features_to_change: 3
+    relative_step_cap: 0.5
     allow_all_actionable: true
-    # Limita magnitud de cambio para hacerlo "realista" desde el punto de vista social
-    max_step_relative: 0.5
