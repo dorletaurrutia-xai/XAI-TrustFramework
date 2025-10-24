@@ -495,7 +495,26 @@ shap_matrix_val = np.asarray(shap_vals_val)
 print("SHAP matrix shape:", shap_matrix_val.shape)
 print("Expected value (phi0):", float(phi0))
 ```
-
+> [!NOTE]
+> **Conceptual Note — SHAP as Controlled Behavioral Characterization**
+>
+> In this framework, SHAP (SHapley Additive Explanations) is not used as an interpretability tool but as a **controlled behavioral characterization method**.  
+> Rather than “opening” the model or inspecting internal parameters, it **models the system’s response surface** under a set of fairness-preserving constraints.
+>
+> Each feature is treated as an **input variable in a cooperative system**, whose marginal influence on the output can be measured empirically.  
+> Through this formalism, SHAP provides a way to **observe and quantify the functional structure** of the model without altering its internal mechanisms.
+>
+> The method is grounded in *Shapley’s efficiency theorem* (1953), which ensures that the decomposition of the prediction into additive components is **unique, stable, and invariant** under symmetrical transformations.  
+> This transforms explainability into a form of **system-level accountability** — a measurable mapping between inputs and outputs that can be validated empirically.
+>
+> Within the *XAI-TrustFramework*, SHAP therefore acts as a **non-intrusive diagnostic instrument**, verifying whether the model’s predictions are:
+> - **Additive** — decomposable into consistent feature contributions (→ Completeness);  
+> - **Accurate locally** — reconstructable per instance (→ Fidelity);  
+> - **Consistent** — stable under perturbations (→ Stability).
+>
+> In this sense, SHAP does not *explain* the model; it **tests its structural reliability**.  
+> The focus shifts from interpretation to **empirical validation of trust properties** — aligning with the thesis premise that trust in AI systems emerges from verifiable behavioral evidence rather than introspection.
+>
 > [!NOTE]
 > **Conceptual Note — Why TreeSHAP here? (Data → Task → Method → Trust Link)**
 >
@@ -551,9 +570,6 @@ print("Expected value (phi0):", float(phi0))
 > Dimension → Technical
 > ```
 
-#### Why interventional?
-It approximates do()-style interventions on individual features, which helps reduce artefacts from feature correlation compared to purely independent perturbations—particularly important with tabular data.
-
 #### Outputs captured:
 
 expected_value (φ₀) — baseline model output with no feature contributions.
@@ -579,6 +595,39 @@ Ensure the background data (data=X_train) matches your training distribution to 
 > within a tolerance threshold **τ**, defined in  
 > `priors_clinical.yaml` → `tolerances.additivity_abs_tau`.  
 > This validation is first performed on the **validation** split and later replicated on the **test** split.
+
+
+[!NOTE]
+> **Conceptual link — Local Accuracy (Additivity → Fidelity)**
+>
+> TreeSHAP satisfies **Local Accuracy** (a consequence of Additivity/Efficiency) by design.  
+> Empirically, we test its observable notion — **Fidelity** — by checking how well the additive reconstruction matches the model:
+>
+> \[
+> f(x) \approx \phi_0 + \sum_i \phi_i(x)
+> \]
+>
+> We quantify Fidelity on the **validation** split (and later on **test**) using error/agreement metrics such as **MAE** and **\(R^2\)** between \( f(x) \) and \( \phi_0 + \sum_i \phi_i(x) \).  
+> Lower MAE and higher \(R^2\) indicate that the explanations **faithfully reproduce** the model’s behavior.
+>
+
+> [!NOTE]
+> **Conceptual link — Consistency (→ Stability)**
+>
+> Shapley’s **Consistency/Symmetry** implies that explanations should vary **smoothly and coherently** under small input changes.  
+> Empirically, we test its observable notion — **Stability** — by perturbing inputs with a small **ε** and comparing original vs. perturbed SHAP vectors:
+>
+> \[
+> \text{Stability}(x;\,\varepsilon) \;=\; \cos\big(\,\boldsymbol{\phi}(x),\, \boldsymbol{\phi}(x+\delta)\,\big), 
+> \quad \delta \sim \mathcal{N}(0,\varepsilon^2 I)
+> \]
+>
+> We report the **mean (↑)** and **std (↓)** of cosine (or Spearman) similarity across instances.  
+> The perturbation magnitude ε is configured in  
+> `priors_clinical.yaml` → `tolerances.consistency_perturbation.epsilon`.  
+> Higher similarity indicates **robust, consistent** explanations under realistic measurement noise.
+
+
 
 ### Step 5.2 — Save SHAP results for traceability
 
@@ -636,26 +685,7 @@ phi0.json
 Once uploaded, these SHAP outputs can be reused by later notebooks to compute trust metrics
 (Completeness, Fidelity, and Stability) without recomputing explanations.
 
-> [!NOTE]
-> **Conceptual Note — SHAP as Controlled Behavioral Characterization**
->
-> In this framework, SHAP (SHapley Additive Explanations) is not used as an interpretability tool but as a **controlled behavioral characterization method**.  
-> Rather than “opening” the model or inspecting internal parameters, it **models the system’s response surface** under a set of fairness-preserving constraints.
->
-> Each feature is treated as an **input variable in a cooperative system**, whose marginal influence on the output can be measured empirically.  
-> Through this formalism, SHAP provides a way to **observe and quantify the functional structure** of the model without altering its internal mechanisms.
->
-> The method is grounded in *Shapley’s efficiency theorem* (1953), which ensures that the decomposition of the prediction into additive components is **unique, stable, and invariant** under symmetrical transformations.  
-> This transforms explainability into a form of **system-level accountability** — a measurable mapping between inputs and outputs that can be validated empirically.
->
-> Within the *XAI-TrustFramework*, SHAP therefore acts as a **non-intrusive diagnostic instrument**, verifying whether the model’s predictions are:
-> - **Additive** — decomposable into consistent feature contributions (→ Completeness);  
-> - **Accurate locally** — reconstructable per instance (→ Fidelity);  
-> - **Consistent** — stable under perturbations (→ Stability).
->
-> In this sense, SHAP does not *explain* the model; it **tests its structural reliability**.  
-> The focus shifts from interpretation to **empirical validation of trust properties** — aligning with the thesis premise that trust in AI systems emerges from verifiable behavioral evidence rather than introspection.
->
+
 
 > [!TIP]
 > **Result Analysis — SHAP baseline validation (φ₀, φᵢ(x), and their epistemic meaning)**
