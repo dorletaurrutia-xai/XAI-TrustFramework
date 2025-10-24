@@ -511,12 +511,13 @@ print("Expected value (phi0):", float(phi0))
 > 
 > ### Shapley Axioms and Empirical Trust Validation
 > 
-> | **Shapley Axiom / Method-Guaranteed Property** | **Engineering Interpretation** | **Empirical Trust Notion** | **Metric / Formula** | **Parameter** | **Pilot Status** |
-> |-----------------------------------------------|--------------------------------|-----------------------------|----------------------|----------------|------------------|
-> | **Additivity / Efficiency** | The total output equals the sum of individual feature contributions. | **Completeness** | % of instances where \\( \|f(x) − [\phi_0 + \sum_i \phi_i(x)]\| ≤ τ\\) | τ (`tolerances.additivity_abs_tau`) | ✅ Operationalized |
-> | **Local Accuracy** | Each instance’s prediction equals its additive reconstruction. | **Fidelity** | MAE or \\(R^2\\) between \\(f(x)\\) and \\(\phi_0 + \sum_i \phi_i(x)\\) | — | ✅ Operationalized |
-> | **Consistency / Symmetry** | Inputs with equivalent impact receive equal attributions; small perturbations yield similar explanations. | **Stability** | Cosine/Spearman similarity between SHAP vectors under ε-perturbations | ε (`tolerances.consistency_perturbation.epsilon`) | ✅ Operationalized |
-> | **Missingness / Dummy** | Features with no effect receive zero attribution. | — | — | — | ⚪ Not tested in this pilot |
+> | **Theoretical Property** | **Engineering Interpretation** | **Empirical Trust Notion** | **Metric / Evidence** | **Parameter / File** | **Operational Status** |
+> |---------------------------|--------------------------------|-----------------------------|------------------------|----------------------|-------------------------|
+> | **Additivity / Efficiency** | The total output equals the sum of individual feature contributions. | **Completeness** | % of instances where |f(x) − [φ₀ + Σφᵢ(x)]| ≤ τ | τ (`tolerances.additivity_abs_tau`) | ✅ Operationalized *(Additivity → Completeness, τ)* |
+> | **Local Accuracy** | Each instance’s prediction equals its additive reconstruction. | **Fidelity** | MAE or R² between model output and [φ₀ + Σφᵢ(x)] | `metrics_summary_val.csv` | ✅ Operationalized |
+> | **Consistency / Symmetry** | Inputs with equivalent impact receive equal attributions. | **Stability** | Cosine/Spearman similarity of SHAP vectors under ε-perturbations | ε (`tolerances.consistency_perturbation.epsilon`) / `stability_analysis.csv` | ✅ Operationalized *(Consistency → Stability, ε)* |
+> | **Dummy / Missingness** | Inputs that have no influence receive zero attribution. | — *(not quantified)* | — | — | ⚪ Not included in this pilot |
+> 
 > 
 > ---
 > 
@@ -757,9 +758,9 @@ Once downloaded, move the file into your local repository:
 > **Core idea:**  
 > SHAP values \( \phi_i(x) \) are **empirical observables** of the model’s response surface.  
 > The decomposition
-> \[
+> $$
 > f(x) = \phi_0 + \sum_i \phi_i(x)
-> \]
+> $$
 > is not a visualization exercise but a **validation statement**:  
 > it confirms whether the model behaves as a **stable, decomposable system** rather than an opaque artifact.
 >
@@ -789,11 +790,12 @@ Once downloaded, move the file into your local repository:
 >
 > **Integration with the XAI-TrustFramework**
 >
-> | **Theoretical Property** | **Empirical Trust Notion** | **Metric / Evidence** | **Meaning in this model** |
-> |---------------------------|-----------------------------|------------------------|----------------------------|
-> | **Additivity (Efficiency)** | **Completeness** | % of instances where \\( \| f(x) - [\phi_0 + \sum_i \phi_i(x)] \| \le τ \\) | Validates additive reconstruction (τ = tolerance). |
-> | **Local Accuracy** | **Fidelity** | MAE or R² between model output and reconstruction | Quantifies per-instance coherence. |
-> | **Consistency (Symmetry)** | **Stability** | Cosine/Spearman similarity under ε-perturbations | Tests robustness of explanations. |
+> | Theoretical Property (Guarantee) | Empirical Trust Notion | Metric / Evidence | Meaning in this model |
+> |----------------------------------|------------------------|------------------|-----------------------|
+> | Additivity (Efficiency) | Completeness | % of instances where |f(x) − [φ₀ + Σφᵢ(x)]| ≤ τ | Validates additive reconstruction (τ = tolerance). |
+> | Local Accuracy | Fidelity | MAE or R² between model output and reconstruction | Quantifies per-instance coherence. |
+> | Consistency (Symmetry) | Stability | Cosine or Spearman similarity under ε-perturbations | Tests robustness of feature attributions. |
+
 >
 > **Relevance to the thesis methodology**  
 > - Demonstrates how *normative fairness principles* (from Shapley’s theory) become **empirical trust evidence**.  
